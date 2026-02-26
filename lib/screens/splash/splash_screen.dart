@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:holy_quran/routes/routes_manager.dart';
 import 'package:holy_quran/values/assets_manager.dart';
 import 'package:holy_quran/values/font_manager.dart';
 
@@ -36,7 +37,7 @@ class _SplashViewBodyState extends State<SplashScreen>
 
     slidungAnimation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        // Navigator.pushReplacementNamed(context, RoutesManager.loginRoute);
+        Navigator.pushReplacementNamed(context, RoutesManager.loginRoute);
       }
     });
   }

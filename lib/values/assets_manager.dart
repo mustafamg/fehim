@@ -11,11 +11,12 @@ class IconAssets {
   static const String englishIcon = "${iconPath}en.svg";
 }
 
-class JsonAssets {
-  static const String splash = "${jsonPath}cleaning.json";
-  static const String createMade = "${jsonPath}create_made.json";
-  static const String loading = "${jsonPath}Loading.json";
-  static const String loading2 = "${jsonPath}Loading Spinner.json";
-  static const String emptyBox = "${jsonPath}emptyBox.json";
-  static const String ramadan = "${jsonPath}Ramadan.json";
+class SvgAssets {
+  static const String arrowDown = "${iconPath}arrow_down.svg";
+  static const String arrowLeft = "${iconPath}arrow_left.svg";
+  static const String quran = "${iconPath}quran.svg";
+  static const String rubElHizb = "${iconPath}rub-el-hizb.svg";
+  static const String confetti = "${iconPath}confetti.svg";
 }
+
+class JsonAssets {}

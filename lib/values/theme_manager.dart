@@ -50,9 +50,9 @@ class ThemeManager {
           statusBarBrightness: Brightness.light,
         ),
         centerTitle: true,
-        backgroundColor: ColorManager.primary,
+        backgroundColor: ColorManager.white,
         elevation: AppSize.s2,
-        shadowColor: ColorManager.lightGrey,
+        shadowColor: Colors.transparent,
         titleTextStyle: getReqularStyle(
           fontSize: FontSizeManager.s16,
           color: ColorManager.white,

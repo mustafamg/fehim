@@ -1,0 +1,15 @@
+--- lib/screens/arrange_puzzle/arrange_puzzle_screen.dart
++++ lib/screens/arrange_puzzle/arrange_puzzle_screen.dart
+@@ -429,6 +429,8 @@
+             ),
+           ],
+         );
++      },
++    );
++  }
++
++  void _showFinishDialog(BuildContext context) {
++    showModalBottomSheet(
+       context: context,
+       isScrollControlled: true,
+       backgroundColor: Colors.transparent,

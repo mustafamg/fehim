@@ -50,6 +50,11 @@ dependencies:
   hive: ^2.2.3
   cached_network_image: ^3.4.1
   get: ^4.7.3
+  flutter_svg: ^2.2.3
+  firebase_core: ^4.4.0
+  easy_stepper: ^1.0.1
+  cloud_firestore: ^6.1.2
+  audioplayers: ^6.5.1
 
 dev_dependencies:
   flutter_test:

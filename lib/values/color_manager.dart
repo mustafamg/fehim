@@ -19,7 +19,9 @@ class ColorManager {
   static Color textFieldNameColor = const Color(0xff273549);
   static Color textFieldBorderColor = const Color(0xffB4BDC7);
   static Color backgroundColor = const Color(0xffF2F2F2);
-  static Color textColor = const Color(0xff303030);
-  static Color subTextColor = const Color(0xff7C7C7C);
-  static Color unselectedProgressColor = const Color.fromRGBO(229, 231, 233, 1);
+  static Color textColor = const Color(0xff33312C);
+  static Color subTextColor = const Color(0xff6B7A85);
+  static Color textColor2 = const Color(0xff1F1F1F);
+  static Color iconBackgroundColors = const Color(0xffF7F7F8);
+  static Color lineColor = const Color(0xffD9DBE1);
 }
