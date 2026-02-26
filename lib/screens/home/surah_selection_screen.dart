@@ -2,17 +2,51 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:holy_quran/main.dart';
-import 'package:holy_quran/screens/ayah_learning_path/ayah_learning_path_screen.dart';
 import 'package:holy_quran/screens/home/components/stepper/quran_custom_stepper.dart';
 import 'package:holy_quran/screens/home/surah_selection_view_model.dart';
+import 'package:holy_quran/screens/surah_learning_path/surah_learning_path_screen.dart';
 import 'package:holy_quran/values/assets_manager.dart';
 import 'package:holy_quran/values/color_manager.dart';
 import 'package:holy_quran/values/font_manager.dart';
 import 'package:holy_quran/values/values_manager.dart';
 import 'package:provider/provider.dart';
 
-class SurahSelectionScreen extends StatelessWidget {
+class SurahSelectionScreen extends StatefulWidget {
   const SurahSelectionScreen({super.key});
+
+  @override
+  State<SurahSelectionScreen> createState() => _SurahSelectionScreenState();
+}
+
+class _SurahSelectionScreenState extends State<SurahSelectionScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // App came to foreground, refresh data
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final viewModel = Provider.of<SurahSelectionScreenViewModel>(
+            context,
+            listen: false,
+          );
+          viewModel.refresh();
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,9 +215,14 @@ class __BodyState extends State<_Body> {
                       context,
                       MaterialPageRoute(
                         builder: (_) =>
-                            AyahLearningPathScreen(verse: currentVerseData),
+                            SurahLearningPathScreen(verse: currentVerseData),
                       ),
-                    );
+                    ).then((_) {
+                      // Refresh when returning from learning path
+                      if (mounted) {
+                        viewModel.refresh();
+                      }
+                    });
                   }
                 },
               ),

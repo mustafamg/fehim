@@ -28,6 +28,8 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
 
   String? _failedWord;
   int? _failedIndex;
+  String? _error;
+  String? _audioUrl;
 
   bool _isPlaying = false;
   Duration _currentPosition = Duration.zero;
@@ -41,6 +43,12 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
   List<String?> get matchedWords => _matchedWords;
   String? get failedWord => _failedWord;
   int? get failedIndex => _failedIndex;
+  String? get error => _error;
+
+  void setError(String error) {
+    _error = error;
+    notifyListeners();
+  }
 
   bool get isAllMatched =>
       _matchedWords.isNotEmpty && !_matchedWords.contains(null);
@@ -77,6 +85,10 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
     String? surahId,
     int? verseNumber,
   }) {
+    // Store audio URL
+    _audioUrl = audioUrl;
+    print('ArrangePuzzleViewModel initialized with audio URL: $_audioUrl');
+
     // Update user/surah tracking if provided
     if (userId != null) _userId = userId;
     if (surahId != null) _surahId = surahId;
@@ -98,18 +110,34 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
     _matchedWords = List.filled(_originalWords.length, null);
 
     // Load audio if URL is provided
-    if (audioUrl.isNotEmpty) {
-      _audioPlayer.setSourceUrl(audioUrl);
+    if (_audioUrl != null && _audioUrl!.isNotEmpty) {
+      print('Setting audio source: $_audioUrl');
+      _audioPlayer.setSourceUrl(_audioUrl!);
+    } else {
+      print('No audio URL provided during initialization');
     }
 
     notifyListeners();
   }
 
   Future<void> toggleAudio() async {
+    print('toggleAudio called. isPlaying: $_isPlaying, audioUrl: $_audioUrl');
+
     if (_isPlaying) {
       await _audioPlayer.pause();
+      print('Audio paused');
     } else {
-      await _audioPlayer.resume();
+      if (_audioUrl != null && _audioUrl!.isNotEmpty) {
+        print('Playing audio from URL: $_audioUrl');
+        try {
+          await _audioPlayer.play(UrlSource(_audioUrl!));
+          print('Audio play command sent');
+        } catch (e) {
+          print('Error playing audio: $e');
+        }
+      } else {
+        print('No audio URL available');
+      }
     }
   }
 
@@ -149,6 +177,8 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
   /// Updates the user's progress in Firebase when the puzzle is completed
   Future<void> updateProgress() async {
     try {
+      print('Updating progress for verse $_verseNumber in surah $_surahId');
+
       // Get current progress from Firestore
       final currentProgress = await _firestoreService.getUserProgress(
         _userId,
@@ -158,10 +188,16 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
       int completedVerses = currentProgress['completedVerses'] as int? ?? 0;
       int currentVerse = currentProgress['currentVerse'] as int? ?? 1;
 
+      print(
+        'Current progress: completed=$completedVerses, current=$currentVerse',
+      );
+
       // Only update if this verse hasn't been completed yet
       if (_verseNumber > completedVerses) {
         completedVerses = _verseNumber;
         currentVerse = _verseNumber + 1;
+
+        print('Updating to: completed=$completedVerses, current=$currentVerse');
 
         // Update Firestore
         await _firestoreService.updateUserProgress(
@@ -170,6 +206,10 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
           completedVerses,
           currentVerse,
         );
+
+        print('Progress updated successfully in Firebase');
+      } else {
+        print('Verse $_verseNumber already completed, no update needed');
       }
     } catch (e) {
       // Could add error handling here if needed

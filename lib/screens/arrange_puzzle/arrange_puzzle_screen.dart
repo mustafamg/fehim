@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:holy_quran/main.dart';
+import 'package:holy_quran/services/firestore_service.dart';
+import 'package:holy_quran/values/assets_manager.dart';
 import 'package:provider/provider.dart';
 
-import '../../values/assets_manager.dart';
 import '../../values/color_manager.dart';
 import '../../values/values_manager.dart';
 import '../home/surah_selection_view_model.dart';
@@ -45,31 +46,98 @@ class _ArrangePuzzleScreenState extends State<ArrangePuzzleScreen> {
     });
   }
 
+  Future<String> _getAudioUrl() async {
+    print('=== Starting audio URL fetch ===');
+    print('Verse keys: ${widget.verse.keys}');
+    print('Initial audioUrl from verse: "${widget.verse['audioUrl']}"');
+
+    String audioUrl = widget.verse['audioUrl'] ?? '';
+
+    // If no audio URL in verse data, fetch from Firestore
+    if (audioUrl.isEmpty) {
+      print('No audio URL in verse data, fetching from Firestore...');
+      try {
+        final firestoreService = FirestoreService();
+        print('Fetching surah data for al_falaq...');
+        final surahData = await firestoreService.getSurahData('al_falaq');
+        print('Surah data keys: ${surahData.keys}');
+
+        final verses = List<Map<String, dynamic>>.from(
+          surahData['verses'] ?? [],
+        );
+        print('Total verses fetched: ${verses.length}');
+        print('Looking for verse number: ${widget.verse['verseNumber']}');
+
+        final currentVerse = verses.firstWhere(
+          (v) => v['verseNumber'] == widget.verse['verseNumber'],
+          orElse: () {
+            print('Verse not found in Firestore data');
+            return <String, dynamic>{};
+          },
+        );
+
+        print('Found verse keys: ${currentVerse.keys}');
+        audioUrl = currentVerse['audioUrl'] ?? currentVerse['audio'] ?? '';
+        print('Fetched audio URL from Firestore: "$audioUrl"');
+      } catch (e) {
+        print('Error fetching audio URL from Firestore: $e');
+        print('Stack trace: ${StackTrace.current}');
+      }
+    } else {
+      print('Using audio URL from verse data');
+    }
+
+    print('=== Final audio URL: "$audioUrl" ===');
+    return audioUrl;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) {
-        final viewModel = ArrangePuzzleViewModel();
-        if (widget.verse.containsKey('words') &&
-            widget.verse['words'] is List) {
-          final wordsList = List<Map<String, dynamic>>.from(
-            widget.verse['words'],
-          );
-          final audioUrl = widget.verse['audio'] ?? '';
-          viewModel.init(
-            wordsList,
-            audioUrl,
-            userId: widget.verse['userId'],
-            surahId: widget.verse['surahId'],
-            verseNumber: widget.verse['verseNumber'],
+    return FutureBuilder<String>(
+      future: _getAudioUrl(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            backgroundColor: Colors.white,
+            body: Center(child: CircularProgressIndicator()),
           );
         }
-        return viewModel;
+
+        final audioUrl = snapshot.data ?? '';
+
+        return ChangeNotifierProvider(
+          create: (_) {
+            final viewModel = ArrangePuzzleViewModel();
+            print('Verse data received: ${widget.verse.keys}');
+            print('Final audio URL: "$audioUrl"');
+
+            if (widget.verse.containsKey('words') &&
+                widget.verse['words'] is List) {
+              final wordsList = List<Map<String, dynamic>>.from(
+                widget.verse['words'],
+              );
+
+              viewModel.init(
+                wordsList,
+                audioUrl,
+                userId: widget.verse['userId'],
+                surahId: widget.verse['surahId'],
+                verseNumber: widget.verse['verseNumber'],
+              );
+            } else {
+              // Set an error state if words data is missing
+              viewModel.setError(
+                'Missing puzzle data. Please complete the learning path first.',
+              );
+            }
+            return viewModel;
+          },
+          child: Scaffold(
+            backgroundColor: Colors.white,
+            body: SafeArea(child: _Body(verse: widget.verse)),
+          ),
+        );
       },
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(child: _Body(verse: widget.verse)),
-      ),
     );
   }
 }
@@ -83,6 +151,35 @@ class _Body extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ArrangePuzzleViewModel>(
       builder: (context, viewModel, child) {
+        // Show error if puzzle data is missing
+        if (viewModel.error != null) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.all(AppPadding.p20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  SizedBox(height: AppPadding.p16),
+                  Text(
+                    viewModel.error!,
+                    style: TextStyle(
+                      fontSize: AppSize.s16,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: AppPadding.p16),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Go Back'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         return Column(
           children: [
             // Top App Bar Area with Progress
@@ -486,12 +583,22 @@ class _Body extends StatelessWidget {
     );
   }
 
-  void _showFinishDialog(BuildContext context) {
-    // Capture the ViewModel before showing the modal
+  void _showFinishDialog(BuildContext context) async {
+    // Capture the ViewModels before showing the modal
     final viewModel = Provider.of<ArrangePuzzleViewModel>(
       context,
       listen: false,
     );
+
+    // Get home screen ViewModel to access progress data
+    final homeViewModel = getIt<SurahSelectionScreenViewModel>();
+
+    // Ensure we have data loaded before showing the dialog
+    if (homeViewModel.totalVerses == 0) {
+      await homeViewModel.initialize();
+    }
+
+    if (!context.mounted) return;
 
     showModalBottomSheet(
       context: context,
@@ -605,30 +712,57 @@ class _Body extends StatelessWidget {
                         ),
                         SizedBox(height: AppPadding.p16),
 
-                        // Progress Dots
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _buildProgressDot(context, true, "1"),
-                            _buildDottedLine(),
-                            _buildProgressDot(context, true, "2"),
-                            _buildDottedLine(),
-                            _buildProgressDot(
-                              context,
-                              false,
-                              "3",
-                              isCurrent: true,
-                            ),
-                            _buildDottedLine(),
-                            _buildProgressDot(context, false, "4"),
-                            _buildDottedLine(),
-                            _buildProgressDot(context, false, "5"),
-                          ],
+                        // Dynamic Progress Dots from Firestore
+                        Builder(
+                          builder: (context) {
+                            final totalVerses = homeViewModel.totalVerses;
+
+                            if (totalVerses == 0) {
+                              return const SizedBox(); // Hide if no data is available instead of showing fake dots
+                            }
+
+                            // Show dynamic dots based on actual Firestore verses count
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                ...List.generate(totalVerses, (index) {
+                                  final verseNumber = index + 1;
+
+                                  // A verse is completed only if its number is LESS THAN the current verse
+                                  // OR if it's explicitly marked as completed in Firestore
+                                  final isCompleted =
+                                      verseNumber <
+                                          homeViewModel.currentVerse ||
+                                      verseNumber <=
+                                          homeViewModel.completedVerses;
+
+                                  final isCurrent =
+                                      verseNumber == homeViewModel.currentVerse;
+
+                                  return Expanded(
+                                    child: Row(
+                                      children: [
+                                        _buildProgressDot(
+                                          context,
+                                          isCompleted,
+                                          verseNumber.toString(),
+                                          isCurrent: isCurrent,
+                                        ),
+                                        if (index < totalVerses - 1) ...[
+                                          Expanded(child: _buildDottedLine()),
+                                        ],
+                                      ],
+                                    ),
+                                  );
+                                }),
+                              ],
+                            );
+                          },
                         ),
 
                         SizedBox(height: AppPadding.p16),
                         Text(
-                          '3 - And From The Evil Of The Darkening (Night) As It Comes With Its Darkness - ومن شر غاسق إذا وقب', // Should be dynamic based on verse
+                          '${verse['verseNumber']} - ${verse['translation'] ?? ''} - ${verse['arabic'] ?? ''}',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Colors.white.withValues(alpha: 0.9),
@@ -646,8 +780,7 @@ class _Body extends StatelessWidget {
                                   await viewModel.updateProgress();
                                   if (!context.mounted) return;
 
-                                  // Navigate back to home - the home screen will auto-refresh
-                                  // when it becomes visible again via lifecycle observer
+                                  // Navigate back to home
                                   Navigator.of(
                                     context,
                                   ).popUntil((route) => route.isFirst);
