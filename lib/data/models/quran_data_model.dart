@@ -1,20 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-// Main collection structure for Quran app in Firestore
-
-// Collection: quran_data
-// Document: {surah_id}
-// Subcollections: verses, translations, audio
-
 class SurahModel {
   final String id;
   final String name;
   final int surahNumber;
   final int totalVerses;
   final String revelationType;
-  final Map<String, String> names; // Multi-language support
+  final Map<String, String> names; 
   final Timestamp createdAt;
-
   SurahModel({
     required this.id,
     required this.name,
@@ -24,7 +16,6 @@ class SurahModel {
     required this.names,
     required this.createdAt,
   });
-
   factory SurahModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return SurahModel(
@@ -37,7 +28,6 @@ class SurahModel {
       createdAt: data['created_at'] ?? Timestamp.now(),
     );
   }
-
   Map<String, dynamic> toFirestore() {
     return {
       'name': name,
@@ -49,7 +39,6 @@ class SurahModel {
     };
   }
 }
-
 class VerseModel {
   final String id;
   final String surahId;
@@ -60,7 +49,6 @@ class VerseModel {
   final int rubElHizb;
   final String sajda;
   final List<WordModel> words;
-
   VerseModel({
     required this.id,
     required this.surahId,
@@ -72,13 +60,11 @@ class VerseModel {
     required this.sajda,
     required this.words,
   });
-
   factory VerseModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     final wordsList = (data['words'] as List<dynamic>?)
         ?.map((word) => WordModel.fromMap(word as Map<String, dynamic>))
         .toList() ?? [];
-
     return VerseModel(
       id: doc.id,
       surahId: data['surah_id'] ?? '',
@@ -91,7 +77,6 @@ class VerseModel {
       words: wordsList,
     );
   }
-
   Map<String, dynamic> toFirestore() {
     return {
       'surah_id': surahId,
@@ -105,15 +90,13 @@ class VerseModel {
     };
   }
 }
-
 class WordModel {
   final String id;
   final int position;
   final String arabic;
-  final Map<String, String> translations; // Multi-language translations
+  final Map<String, String> translations; 
   final String? audioUrl;
   final List<String> tajweedRules;
-
   WordModel({
     required this.id,
     required this.position,
@@ -122,7 +105,6 @@ class WordModel {
     this.audioUrl,
     required this.tajweedRules,
   });
-
   factory WordModel.fromMap(Map<String, dynamic> data) {
     return WordModel(
       id: data['id'] ?? '',
@@ -133,7 +115,6 @@ class WordModel {
       tajweedRules: List<String>.from(data['tajweed_rules'] ?? []),
     );
   }
-
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -145,17 +126,15 @@ class WordModel {
     };
   }
 }
-
 class PuzzleModel {
   final String id;
   final String verseId;
-  final int puzzleNumber; // 1-4 for each verse
+  final int puzzleNumber; 
   final List<String> arabicWords;
   final List<String> englishWords;
-  final List<String> correctOrder; // Correct sequence of words
+  final List<String> correctOrder; 
   final String difficulty;
   final int points;
-
   PuzzleModel({
     required this.id,
     required this.verseId,
@@ -166,7 +145,6 @@ class PuzzleModel {
     required this.difficulty,
     required this.points,
   });
-
   factory PuzzleModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return PuzzleModel(
@@ -180,7 +158,6 @@ class PuzzleModel {
       points: data['points'] ?? 0,
     );
   }
-
   Map<String, dynamic> toFirestore() {
     return {
       'verse_id': verseId,
@@ -193,7 +170,6 @@ class PuzzleModel {
     };
   }
 }
-
 class UserProgressModel {
   final String id;
   final String userId;
@@ -201,10 +177,9 @@ class UserProgressModel {
   final int currentVerse;
   final int currentPuzzle;
   final List<CompletedPuzzleModel> completedPuzzles;
-  final double overallProgress; // Percentage 0-100
+  final double overallProgress; 
   final Timestamp lastAccessed;
   final Map<String, dynamic> achievements;
-
   UserProgressModel({
     required this.id,
     required this.userId,
@@ -216,13 +191,11 @@ class UserProgressModel {
     required this.lastAccessed,
     required this.achievements,
   });
-
   factory UserProgressModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     final completedList = (data['completed_puzzles'] as List<dynamic>?)
         ?.map((puzzle) => CompletedPuzzleModel.fromMap(puzzle as Map<String, dynamic>))
         .toList() ?? [];
-
     return UserProgressModel(
       id: doc.id,
       userId: data['user_id'] ?? '',
@@ -235,7 +208,6 @@ class UserProgressModel {
       achievements: Map<String, dynamic>.from(data['achievements'] ?? {}),
     );
   }
-
   Map<String, dynamic> toFirestore() {
     return {
       'user_id': userId,
@@ -248,15 +220,13 @@ class UserProgressModel {
       'achievements': achievements,
     };
   }
-
   double calculateProgress() {
-    // Calculate progress based on completed puzzles
-    // Each verse has 4 puzzles, so total puzzles = verse_count * 4
-    // Progress = (completed_puzzles / total_puzzles) * 100
+    
+    
+    
     return overallProgress;
   }
 }
-
 class CompletedPuzzleModel {
   final String verseId;
   final int puzzleNumber;
@@ -264,7 +234,6 @@ class CompletedPuzzleModel {
   final int attempts;
   final int timeInSeconds;
   final int score;
-
   CompletedPuzzleModel({
     required this.verseId,
     required this.puzzleNumber,
@@ -273,7 +242,6 @@ class CompletedPuzzleModel {
     required this.timeInSeconds,
     required this.score,
   });
-
   factory CompletedPuzzleModel.fromMap(Map<String, dynamic> data) {
     return CompletedPuzzleModel(
       verseId: data['verse_id'] ?? '',
@@ -284,7 +252,6 @@ class CompletedPuzzleModel {
       score: data['score'] ?? 0,
     );
   }
-
   Map<String, dynamic> toMap() {
     return {
       'verse_id': verseId,
@@ -296,51 +263,3 @@ class CompletedPuzzleModel {
     };
   }
 }
-
-// Firestore Collection Structure:
-/*
-quran_data/
-  ├── {surah_id}/
-  │   ├── surah_info (document with SurahModel)
-  │   ├── verses/ (collection)
-  │   │   ├── {verse_id} (VerseModel)
-  │   │   │   └── words (array of WordModel)
-  │   │   └── ...
-  │   ├── translations/ (collection)
-  │   │   ├── {language_code}/
-  │   │   │   └── {verse_id} (translation text)
-  │   │   └── ...
-  │   ├── audio/ (collection)
-  │   │   ├── {reciter_id}/
-  │   │   │   └── {verse_id} (audio URL)
-  │   │   └── ...
-  │   └── puzzles/ (collection)
-  │       ├── {verse_id}_puzzle_1 (PuzzleModel)
-  │       ├── {verse_id}_puzzle_2 (PuzzleModel)
-  │       ├── {verse_id}_puzzle_3 (PuzzleModel)
-  │       └── {verse_id}_puzzle_4 (PuzzleModel)
-  │
-user_progress/
-  ├── {user_id}/
-  │   ├── {surah_id} (UserProgressModel)
-  │   └── ...
-  │
-achievements/
-  ├── {user_id}/
-  │   ├── {achievement_id} (achievement data)
-  │   └── ...
-
-Multi-language support example:
-names: {
-  "ar": "الفاتحة",
-  "en": "Al-Fatiha",
-  "fr": "Al-Fatiha",
-  "ur": "الفاتحہ"
-}
-
-translations: {
-  "en": "In the name of Allah, the Entirely Merciful, the Especially Merciful.",
-  "fr": "Au nom d'Allah, le Tout Miséricordieux, le Très Miséricordieux.",
-  "ur": "اللہ کے نام سے جو بڑا مہربان اور نہایت رحم والا ہے"
-}
-*/

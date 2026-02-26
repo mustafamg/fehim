@@ -2,55 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:holy_quran/routes/routes_manager.dart';
 import 'package:holy_quran/values/assets_manager.dart';
 import 'package:holy_quran/values/font_manager.dart';
-
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
-
   @override
   State<SplashScreen> createState() => _SplashViewBodyState();
 }
-
 class _SplashViewBodyState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController animationController;
   late Animation<double> slidungAnimation;
-
   @override
   void initState() {
     intializeAnimation();
-
     super.initState();
   }
-
   void intializeAnimation() {
     animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
     );
-
     slidungAnimation = CurvedAnimation(
       parent: animationController,
       curve: Curves.bounceInOut,
     );
-
     animationController.forward();
-
     slidungAnimation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         Navigator.pushReplacementNamed(context, RoutesManager.loginRoute);
       }
     });
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Centered Image
+          
           Center(child: Image.asset(ImageAssets.logo)),
-
-          // Bottom Center Text
+          
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -70,7 +59,6 @@ class _SplashViewBodyState extends State<SplashScreen>
       ),
     );
   }
-
   @override
   void dispose() {
     animationController.dispose();

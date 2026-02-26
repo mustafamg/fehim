@@ -1,48 +1,34 @@
 import 'dart:async';
-
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
-
 @injectable
 class SurahLearningPathViewModel extends ChangeNotifier {
   final AudioPlayer _audioPlayer = AudioPlayer();
-
-  // Stream subscriptions
+  
   StreamSubscription<PlayerState>? _playerStateSubscription;
   StreamSubscription<Duration>? _durationSubscription;
   StreamSubscription<Duration>? _positionSubscription;
-
   bool _isLoading = false;
   bool get isLoading => _isLoading;
-
   List<String> _arabicWords = [];
   List<String> get arabicWords => _arabicWords;
-
   List<String> _englishWords = [];
   List<String> get englishWords => _englishWords;
-
   int _currentHighlightedWordIndex = -1;
   int get currentHighlightedWordIndex => _currentHighlightedWordIndex;
-
   int _currentHighlightedTranslationIndex = -1;
   int get currentHighlightedTranslationIndex =>
       _currentHighlightedTranslationIndex;
-
   bool _isPlaying = false;
   bool get isPlaying => _isPlaying;
-
   Duration _currentAudioPosition = Duration.zero;
   Duration get currentAudioPosition => _currentAudioPosition;
-
   Duration _totalAudioDuration = Duration.zero;
   Duration get totalAudioDuration => _totalAudioDuration;
-
   bool _hasFinishedPlaying = false;
   bool get hasFinishedPlaying => _hasFinishedPlaying;
-
   String? _currentAudioUrl;
-
   SurahLearningPathViewModel() {
     _playerStateSubscription = _audioPlayer.onPlayerStateChanged.listen((
       state,
@@ -50,14 +36,12 @@ class SurahLearningPathViewModel extends ChangeNotifier {
       _isPlaying = state == PlayerState.playing;
       notifyListeners();
     });
-
     _durationSubscription = _audioPlayer.onDurationChanged.listen((
       newDuration,
     ) {
       _totalAudioDuration = newDuration;
       notifyListeners();
     });
-
     _positionSubscription = _audioPlayer.onPositionChanged.listen((
       newPosition,
     ) {
@@ -65,9 +49,8 @@ class SurahLearningPathViewModel extends ChangeNotifier {
       _updateHighlights(newPosition);
       notifyListeners();
     });
-
     _audioPlayer.onPlayerComplete.listen((_) {
-      // Audio finished, reset playback to the beginning and stop
+      
       _isPlaying = false;
       _hasFinishedPlaying = true;
       _currentAudioPosition = Duration.zero;
@@ -75,24 +58,19 @@ class SurahLearningPathViewModel extends ChangeNotifier {
       notifyListeners();
     });
   }
-
   void initDummyData() {
     _isLoading = true;
     notifyListeners();
-
-    // Dummy data matching the design "من شر ما خلق" / "From the evil of what He has created"
+    
     _arabicWords = ['مِن', 'شَرِّ', 'مَا', 'خَلَقَ'];
     _englishWords = ['From the evil', 'of what', 'He', 'has created'];
-
-    // Start with the first word highlighted
+    
     _currentHighlightedWordIndex = 0;
     _currentHighlightedTranslationIndex = 0;
-
     _isLoading = false;
     notifyListeners();
   }
-
-  // Load a specific verse's audio and word data
+  
   Future<void> loadVerseData({
     required String arabicText,
     required String translationText,
@@ -100,31 +78,24 @@ class SurahLearningPathViewModel extends ChangeNotifier {
   }) async {
     _isLoading = true;
     notifyListeners();
-
-    // In a real app with word-by-word data, you'd parse this from an API/Firestore.
-    // For now, we'll split by space as a basic approximation.
+    
+    
     _arabicWords = arabicText.split(' ');
-    // Just an approximation for translation too
+    
     _englishWords = translationText.split(' ');
-
     _currentHighlightedWordIndex = 0;
     _currentHighlightedTranslationIndex = 0;
-
     await _audioPlayer.setSourceUrl(audioUrl);
     _currentAudioUrl = audioUrl;
-
     _isLoading = false;
     notifyListeners();
   }
-
   void _updateHighlights(Duration position) {
-    // Basic linear approximation for highlighting words.
-    // In a production app, you would have timestamps for each word to sync perfectly.
+    
+    
     if (_totalAudioDuration.inMilliseconds == 0 || _arabicWords.isEmpty) return;
-
     final progress =
         position.inMilliseconds / _totalAudioDuration.inMilliseconds;
-
     final newArabicIndex = (progress * _arabicWords.length).floor().clamp(
       0,
       _arabicWords.length - 1,
@@ -133,17 +104,15 @@ class SurahLearningPathViewModel extends ChangeNotifier {
       0,
       _englishWords.length - 1,
     );
-
     if (newArabicIndex != _currentHighlightedWordIndex ||
         newEnglishIndex != _currentHighlightedTranslationIndex) {
       _currentHighlightedWordIndex = newArabicIndex;
       _currentHighlightedTranslationIndex = newEnglishIndex;
-      // notifyListeners is called in onPositionChanged
+      
     }
   }
-
   Future<void> resetAudio() async {
-    // Reset state and restart audio source to avoid seek timeouts
+    
     if (_currentAudioUrl != null) {
       await _audioPlayer.stop();
       await _audioPlayer.setSourceUrl(_currentAudioUrl!);
@@ -156,10 +125,8 @@ class SurahLearningPathViewModel extends ChangeNotifier {
     _updateHighlights(Duration.zero);
     notifyListeners();
   }
-
   Future<void> playAudio() async {
     if (_currentAudioUrl == null) return;
-
     if (_hasFinishedPlaying || _currentAudioPosition == Duration.zero) {
       await _audioPlayer.stop();
       _hasFinishedPlaying = false;
@@ -170,23 +137,19 @@ class SurahLearningPathViewModel extends ChangeNotifier {
       await _audioPlayer.resume();
     }
   }
-
   Future<void> pauseAudio() async {
     await _audioPlayer.pause();
   }
-
   Future<void> seekAudio(Duration position) async {
     await _audioPlayer.seek(position);
   }
-
   @override
   void dispose() {
-    // Cancel all stream subscriptions
+    
     _playerStateSubscription?.cancel();
     _durationSubscription?.cancel();
     _positionSubscription?.cancel();
-
-    // Dispose audio player
+    
     _audioPlayer.dispose();
     super.dispose();
   }

@@ -4,7 +4,6 @@ import 'package:holy_quran/contract/local/i_message_service.dart';
 import 'package:holy_quran/generated/l10n.dart';
 import 'package:holy_quran/values/color_manager.dart';
 import 'package:injectable/injectable.dart';
-
 @Singleton(as: IMessageService)
 class MessageService implements IMessageService {
   @override
@@ -17,7 +16,6 @@ class MessageService implements IMessageService {
       icon: const Icon(Icons.error, color: Colors.white),
     );
   }
-
   @override
   void showSuccessSnackBarAlert<T>({required String? message}) {
     Get.snackbar(
@@ -29,7 +27,6 @@ class MessageService implements IMessageService {
       colorText: Colors.white,
     );
   }
-
   @override
   void snackBarActionAlert<T>({
     required String? message,
@@ -48,7 +45,6 @@ class MessageService implements IMessageService {
       ),
     );
   }
-
   @override
   void snackBarAlert<T>({required String? message, Color color = Colors.red}) {
     Get.snackbar(

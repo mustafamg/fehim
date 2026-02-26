@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../values/color_manager.dart';
 import '../../values/font_manager.dart';
 import '../../values/values_manager.dart';
 import '../ayah_learning_path/ayah_learning_path_screen.dart';
 import 'surah_learning_path_view_model.dart';
-
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
-
 class SurahLearningPathScreen extends StatelessWidget {
   final Map<String, dynamic> verse;
-
   const SurahLearningPathScreen({super.key, required this.verse});
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -22,15 +17,12 @@ class SurahLearningPathScreen extends StatelessWidget {
     );
   }
 }
-
 class _Body extends StatefulWidget {
   final Map<String, dynamic> verse;
   const _Body({required this.verse});
-
   @override
   State<_Body> createState() => _BodyState();
 }
-
 class _BodyState extends State<_Body> with RouteAware {
   @override
   void initState() {
@@ -46,7 +38,6 @@ class _BodyState extends State<_Body> with RouteAware {
       );
     });
   }
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -55,19 +46,16 @@ class _BodyState extends State<_Body> with RouteAware {
       routeObserver.subscribe(this, route);
     }
   }
-
   @override
   void dispose() {
     routeObserver.unsubscribe(this);
     super.dispose();
   }
-
   @override
   void didPop() {
-    // Called when returning from AyahLearningPathScreen
+    
     context.read<SurahLearningPathViewModel>().resetAudio();
   }
-
   @override
   Widget build(BuildContext context) {
     return Consumer<SurahLearningPathViewModel>(
@@ -75,17 +63,16 @@ class _BodyState extends State<_Body> with RouteAware {
         if (viewModel.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
-
         return Stack(
           children: [
-            // Center Content (Arabic and English words)
+            
             Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Arabic Words
+                    
                     Wrap(
                       alignment: WrapAlignment.center,
                       spacing: AppSize.s8,
@@ -112,9 +99,9 @@ class _BodyState extends State<_Body> with RouteAware {
                             style: Theme.of(context).textTheme.headlineMedium
                                 ?.copyWith(
                                   fontFamily:
-                                      'Amiri', // Or your preferred Arabic font
+                                      'Amiri', 
                                   fontSize: FontSizeManager
-                                      .s24, // Fallback from s32 to s24
+                                      .s24, 
                                   fontWeight: FontWeight.w700,
                                   color: isHighlighted
                                       ? Colors.white
@@ -127,9 +114,9 @@ class _BodyState extends State<_Body> with RouteAware {
                     ),
                     SizedBox(
                       height: AppSize
-                          .s8, // Fallback to existing s8, will adjust spacing differently
+                          .s8, 
                     ),
-                    // English Words
+                    
                     Wrap(
                       alignment: WrapAlignment.center,
                       spacing: AppSize.s4,
@@ -137,8 +124,8 @@ class _BodyState extends State<_Body> with RouteAware {
                       children: List.generate(viewModel.englishWords.length, (
                         index,
                       ) {
-                        // Assuming a 1-to-1 mapping or we highlight a block of English text
-                        // For the design, "of what" is highlighted together.
+                        
+                        
                         final isHighlighted =
                             index ==
                             viewModel.currentHighlightedTranslationIndex;
@@ -157,7 +144,7 @@ class _BodyState extends State<_Body> with RouteAware {
                             viewModel.englishWords[index],
                             style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
-                                  fontSize: FontSizeManager.s18, // s18 exists
+                                  fontSize: FontSizeManager.s18, 
                                   fontWeight: FontWeight.w400,
                                   color: isHighlighted
                                       ? Colors.white
@@ -171,15 +158,14 @@ class _BodyState extends State<_Body> with RouteAware {
                 ),
               ),
             ),
-
-            // Bottom Controls
+            
             Positioned(
               left: AppPadding.p20,
               right: AppPadding.p20,
               bottom: AppPadding.p40,
               child: Column(
                 children: [
-                  // Audio Player Bar
+                  
                   Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: AppPadding.p16,
@@ -189,12 +175,12 @@ class _BodyState extends State<_Body> with RouteAware {
                       color: viewModel.isPlaying
                           ? ColorManager.secondary
                           : Colors
-                                .grey, // Grey when paused, primary when playing
+                                .grey, 
                       borderRadius: BorderRadius.circular(AppPadding.p12),
                     ),
                     child: Row(
                       children: [
-                        // Play/Pause Button
+                        
                         GestureDetector(
                           onTap: () {
                             if (viewModel.isPlaying) {
@@ -221,14 +207,14 @@ class _BodyState extends State<_Body> with RouteAware {
                           ),
                         ),
                         SizedBox(width: AppPadding.p16),
-                        // Progress Slider
+                        
                         Expanded(
                           child: SliderTheme(
                             data: SliderTheme.of(context).copyWith(
                               activeTrackColor: Colors.white,
                               inactiveTrackColor: Colors.white.withAlpha(
                                 76,
-                              ), // ~0.3 opacity
+                              ), 
                               thumbColor: Colors.white,
                               trackHeight: 2.0,
                               thumbShape: RoundSliderThumbShape(
@@ -264,14 +250,14 @@ class _BodyState extends State<_Body> with RouteAware {
                   ),
                   SizedBox(
                     height: AppPadding.p24,
-                  ), // Gap between player and next button
-                  // Next Button
+                  ), 
+                  
                   GestureDetector(
                     onTap: viewModel.hasFinishedPlaying
                         ? () {
-                            // Stop audio before navigating
+                            
                             viewModel.pauseAudio();
-                            // Navigate to AyahLearningPathScreen
+                            
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -280,7 +266,7 @@ class _BodyState extends State<_Body> with RouteAware {
                               ),
                             );
                           }
-                        : null, // Disabled if audio hasn't finished
+                        : null, 
                     child: Container(
                       width: double.infinity,
                       padding: EdgeInsets.symmetric(vertical: AppPadding.p12),

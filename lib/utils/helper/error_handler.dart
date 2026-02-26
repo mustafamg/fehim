@@ -1,14 +1,11 @@
 import 'dart:io';
-
 import 'package:dio/dio.dart';
-
 abstract class Failure {
   final String message;
   Failure(
     this.message,
   );
 }
-
 class ServerFailure extends Failure {
   ServerFailure(super.message);
   factory ServerFailure.fromDioError(DioException dioExceptionType) {
@@ -33,7 +30,6 @@ class ServerFailure extends Failure {
         return ServerFailure("please try again");
     }
   }
-
   factory ServerFailure.fromResponse(int statusCode, dynamic response) {
     if (statusCode == 404) {
       return ServerFailure(response);
@@ -48,11 +44,9 @@ class ServerFailure extends Failure {
     }
   }
 }
-
 class CacheFailure extends Failure {
   CacheFailure(super.message);
 }
-
 class NetworkFailure extends Failure {
   NetworkFailure(super.message);
 }

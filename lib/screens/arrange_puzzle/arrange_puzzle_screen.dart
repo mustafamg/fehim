@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:holy_quran/main.dart';
@@ -13,9 +14,7 @@ import 'arrange_puzzle_view_model.dart';
 
 class ArrangePuzzleScreen extends StatefulWidget {
   final Map<String, dynamic> verse;
-
   const ArrangePuzzleScreen({super.key, required this.verse});
-
   @override
   State<ArrangePuzzleScreen> createState() => _ArrangePuzzleScreenState();
 }
@@ -23,71 +22,39 @@ class ArrangePuzzleScreen extends StatefulWidget {
 class _ArrangePuzzleScreenState extends State<ArrangePuzzleScreen> {
   @override
   void dispose() {
-    // Trigger a refresh of the home screen when navigating back
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // This will be called after navigation completes
       _refreshHomeScreen();
     });
     super.dispose();
   }
 
   void _refreshHomeScreen() {
-    // Use a delay to ensure navigation is complete
-    Future.delayed(const Duration(milliseconds: 100), () async {
+    Future.delayed(const Duration(milliseconds: AppDuration.d100), () async {
       try {
-        // Try to find and refresh the home screen ViewModel
-        // This works because we're using getIt for dependency injection
         final homeViewModel = getIt<SurahSelectionScreenViewModel>();
         await homeViewModel.refresh();
-      } catch (e) {
-        // If refresh fails, continue silently
-        print('Could not refresh home screen: $e');
-      }
+      } catch (e) {}
     });
   }
 
   Future<String> _getAudioUrl() async {
-    print('=== Starting audio URL fetch ===');
-    print('Verse keys: ${widget.verse.keys}');
-    print('Initial audioUrl from verse: "${widget.verse['audioUrl']}"');
-
     String audioUrl = widget.verse['audioUrl'] ?? '';
-
-    // If no audio URL in verse data, fetch from Firestore
     if (audioUrl.isEmpty) {
-      print('No audio URL in verse data, fetching from Firestore...');
       try {
         final firestoreService = FirestoreService();
-        print('Fetching surah data for al_falaq...');
         final surahData = await firestoreService.getSurahData('al_falaq');
-        print('Surah data keys: ${surahData.keys}');
-
         final verses = List<Map<String, dynamic>>.from(
           surahData['verses'] ?? [],
         );
-        print('Total verses fetched: ${verses.length}');
-        print('Looking for verse number: ${widget.verse['verseNumber']}');
-
         final currentVerse = verses.firstWhere(
           (v) => v['verseNumber'] == widget.verse['verseNumber'],
           orElse: () {
-            print('Verse not found in Firestore data');
             return <String, dynamic>{};
           },
         );
-
-        print('Found verse keys: ${currentVerse.keys}');
         audioUrl = currentVerse['audioUrl'] ?? currentVerse['audio'] ?? '';
-        print('Fetched audio URL from Firestore: "$audioUrl"');
-      } catch (e) {
-        print('Error fetching audio URL from Firestore: $e');
-        print('Stack trace: ${StackTrace.current}');
-      }
-    } else {
-      print('Using audio URL from verse data');
+      } catch (e) {}
     }
-
-    print('=== Final audio URL: "$audioUrl" ===');
     return audioUrl;
   }
 
@@ -102,21 +69,15 @@ class _ArrangePuzzleScreenState extends State<ArrangePuzzleScreen> {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-
         final audioUrl = snapshot.data ?? '';
-
         return ChangeNotifierProvider(
           create: (_) {
             final viewModel = ArrangePuzzleViewModel();
-            print('Verse data received: ${widget.verse.keys}');
-            print('Final audio URL: "$audioUrl"');
-
             if (widget.verse.containsKey('words') &&
                 widget.verse['words'] is List) {
               final wordsList = List<Map<String, dynamic>>.from(
                 widget.verse['words'],
               );
-
               viewModel.init(
                 wordsList,
                 audioUrl,
@@ -125,7 +86,6 @@ class _ArrangePuzzleScreenState extends State<ArrangePuzzleScreen> {
                 verseNumber: widget.verse['verseNumber'],
               );
             } else {
-              // Set an error state if words data is missing
               viewModel.setError(
                 'Missing puzzle data. Please complete the learning path first.',
               );
@@ -144,14 +104,11 @@ class _ArrangePuzzleScreenState extends State<ArrangePuzzleScreen> {
 
 class _Body extends StatelessWidget {
   final Map<String, dynamic> verse;
-
   const _Body({required this.verse});
-
   @override
   Widget build(BuildContext context) {
     return Consumer<ArrangePuzzleViewModel>(
       builder: (context, viewModel, child) {
-        // Show error if puzzle data is missing
         if (viewModel.error != null) {
           return Center(
             child: Padding(
@@ -159,7 +116,11 @@ class _Body extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  Icon(
+                    Icons.error_outline,
+                    size: AppSize.s64,
+                    color: Colors.red,
+                  ),
                   SizedBox(height: AppPadding.p16),
                   Text(
                     viewModel.error!,
@@ -179,10 +140,8 @@ class _Body extends StatelessWidget {
             ),
           );
         }
-
         return Column(
           children: [
-            // Top App Bar Area with Progress
             Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: AppPadding.p20,
@@ -211,7 +170,7 @@ class _Body extends StatelessWidget {
                         alignment: Alignment.centerLeft,
                         child: FractionallySizedBox(
                           widthFactor: viewModel.matchedWords.isEmpty
-                              ? 0.0
+                              ? AppSize.s0
                               : viewModel.matchedWords
                                         .where((w) => w != null)
                                         .length /
@@ -229,10 +188,7 @@ class _Body extends StatelessWidget {
                 ],
               ),
             ),
-
             SizedBox(height: AppPadding.p16),
-
-            // Title
             Text(
               'Arrange the Puzzle',
               style: Theme.of(
@@ -246,33 +202,24 @@ class _Body extends StatelessWidget {
                 context,
               ).textTheme.titleLarge?.copyWith(color: ColorManager.primary),
             ),
-
-            // Progress Indicators (Dots)
             SizedBox(height: AppPadding.p20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(4, (index) {
-                // Assuming 4 words/parts to arrange for the UI logic
+              children: List.generate(AppCount.c4, (index) {
                 int totalWords = viewModel.matchedWords.length;
                 int matchedCount = viewModel.matchedWords
                     .where((w) => w != null)
                     .length;
-
-                // Scale the 4 dots to match progress if words count is different
-                double progressRatio = totalWords == 0
-                    ? 0
+                double progressRatio = totalWords == AppSize.s0
+                    ? AppSize.s0
                     : matchedCount / totalWords;
-                int dotsToFill = (progressRatio * 4).floor();
-
+                int dotsToFill = (progressRatio * AppCount.c4).floor();
                 bool isCompleted = index < dotsToFill;
                 bool isCurrent = index == dotsToFill;
-
-                // Handle the case where all are matched, all 4 dots should be green checkmarks
                 if (viewModel.isAllMatched) {
                   isCompleted = true;
                   isCurrent = false;
                 }
-
                 return Container(
                   margin: EdgeInsets.symmetric(horizontal: AppPadding.p4),
                   width: isCompleted ? AppSize.s24 : AppSize.s24,
@@ -288,7 +235,7 @@ class _Body extends StatelessWidget {
                           : (isCurrent
                                 ? Colors.grey.shade300
                                 : Colors.grey.shade300),
-                      width: 1.5,
+                      width: AppSize.s1_5,
                     ),
                   ),
                   alignment: Alignment.center,
@@ -311,12 +258,9 @@ class _Body extends StatelessWidget {
                 );
               }),
             ),
-
             SizedBox(height: AppPadding.p40),
-
-            // Puzzle Game Area
             SizedBox(
-              height: context.height * 0.3,
+              height: context.height * AppRatio.r0_3,
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
                 child: Container(
@@ -335,7 +279,6 @@ class _Body extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                // Target Slots Area
                                 Center(
                                   child: Wrap(
                                     spacing: AppPadding.p8,
@@ -344,8 +287,6 @@ class _Body extends StatelessWidget {
                                     children: List.generate(
                                       viewModel.matchedWords.length,
                                       (index) {
-                                        // Words are arranged RTL, so index 0 is on the right visually
-                                        // For UI flow, reverse the index to match reading order
                                         int displayIndex =
                                             viewModel.matchedWords.length -
                                             1 -
@@ -355,12 +296,11 @@ class _Body extends StatelessWidget {
                                         bool isError =
                                             viewModel.failedIndex ==
                                             displayIndex;
-
                                         return DragTarget<String>(
                                           builder: (context, candidateData, rejectedData) {
                                             return Container(
-                                              width: 66,
-                                              height: 40,
+                                              width: WidgetWidth.w66,
+                                              height: WidgetHeight.h40,
                                               padding: EdgeInsets.all(
                                                 AppSize.s4,
                                               ),
@@ -387,7 +327,7 @@ class _Body extends StatelessWidget {
                                                                   : Color(
                                                                       0xFFD9DBE1,
                                                                     ))),
-                                                  width: 0.6,
+                                                  width: AppRatio.r0_6,
                                                 ),
                                               ),
                                               alignment: Alignment.center,
@@ -418,7 +358,7 @@ class _Body extends StatelessWidget {
                                                           ),
                                                       textAlign:
                                                           TextAlign.center,
-                                                      maxLines: 1,
+                                                      maxLines: AppCount.c1,
                                                       overflow:
                                                           TextOverflow.ellipsis,
                                                     )
@@ -439,8 +379,6 @@ class _Body extends StatelessWidget {
                                   ),
                                 ),
                                 SizedBox(height: AppPadding.p24),
-
-                                // Draggable Words Area
                                 Center(
                                   child: Wrap(
                                     spacing: AppPadding.p8,
@@ -456,7 +394,7 @@ class _Body extends StatelessWidget {
                                           isDragging: true,
                                         ),
                                         childWhenDragging: Opacity(
-                                          opacity: 0.3,
+                                          opacity: AppOpacity.o0_3,
                                           child: _DraggableWordWidget(
                                             word: word,
                                           ),
@@ -470,8 +408,6 @@ class _Body extends StatelessWidget {
                             ),
                           ),
                         ),
-
-                        // Audio Player Area
                         Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: AppPadding.p16,
@@ -511,11 +447,11 @@ class _Body extends StatelessWidget {
                                     ),
                                     activeTrackColor: Colors.white,
                                     inactiveTrackColor: Colors.white.withValues(
-                                      alpha: 0.3,
+                                      alpha: AppOpacity.a0_3,
                                     ),
                                     thumbColor: Colors.white,
                                     overlayColor: Colors.white.withValues(
-                                      alpha: 0.1,
+                                      alpha: AppOpacity.a0_1,
                                     ),
                                   ),
                                   child: Slider(
@@ -523,13 +459,13 @@ class _Body extends StatelessWidget {
                                         .currentPosition
                                         .inMilliseconds
                                         .toDouble(),
-                                    min: 0.0,
+                                    min: AppSize.s0,
                                     max:
                                         viewModel.totalDuration.inMilliseconds >
                                             0
                                         ? viewModel.totalDuration.inMilliseconds
                                               .toDouble()
-                                        : 1.0,
+                                        : AppSize.s1,
                                     onChanged: (value) {
                                       viewModel.seekAudio(
                                         Duration(milliseconds: value.toInt()),
@@ -547,8 +483,6 @@ class _Body extends StatelessWidget {
                 ),
               ),
             ),
-
-            // Finish Button
             Padding(
               padding: EdgeInsets.all(AppPadding.p20),
               child: GestureDetector(
@@ -584,22 +518,15 @@ class _Body extends StatelessWidget {
   }
 
   void _showFinishDialog(BuildContext context) async {
-    // Capture the ViewModels before showing the modal
     final viewModel = Provider.of<ArrangePuzzleViewModel>(
       context,
       listen: false,
     );
-
-    // Get home screen ViewModel to access progress data
     final homeViewModel = getIt<SurahSelectionScreenViewModel>();
-
-    // Ensure we have data loaded before showing the dialog
-    if (homeViewModel.totalVerses == 0) {
+    if (homeViewModel.totalVerses == AppSize.s0) {
       await homeViewModel.initialize();
     }
-
     if (!context.mounted) return;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -617,15 +544,14 @@ class _Body extends StatelessWidget {
             bottom: MediaQuery.of(context).padding.bottom + AppPadding.p20,
             left: AppPadding.p20,
             right: AppPadding.p20,
-            top: AppPadding.p40, // Space for the floating confetti
+            top: AppPadding.p40,
           ),
           child: Stack(
             clipBehavior: Clip.none,
             alignment: Alignment.topCenter,
             children: [
-              // Floating Confetti Image
               Positioned(
-                top: -80,
+                top: -AppSize.s80,
                 child: Container(
                   width: AppSize.s100,
                   height: AppSize.s100,
@@ -642,7 +568,6 @@ class _Body extends StatelessWidget {
                   ),
                 ),
               ),
-
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -670,15 +595,15 @@ class _Body extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: AppPadding.p24),
-
-                  // Golden Surah Card
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(AppPadding.p16),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          ColorManager.secondary.withValues(alpha: 0.8),
+                          ColorManager.secondary.withValues(
+                            alpha: AppOpacity.a0_8,
+                          ),
                           ColorManager.secondary,
                         ],
                         begin: Alignment.topLeft,
@@ -693,7 +618,7 @@ class _Body extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Surah Al-Falaq', // Should be dynamic based on current surah
+                              'Surah Al-Falaq',
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
                                     color: Colors.white,
@@ -701,7 +626,7 @@ class _Body extends StatelessWidget {
                                   ),
                             ),
                             Text(
-                              'سورة الفلق', // Should be dynamic based on current surah
+                              'سورة الفلق',
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
                                     color: Colors.white,
@@ -712,33 +637,26 @@ class _Body extends StatelessWidget {
                         ),
                         SizedBox(height: AppPadding.p16),
 
-                        // Dynamic Progress Dots from Firestore
                         Builder(
                           builder: (context) {
                             final totalVerses = homeViewModel.totalVerses;
-
-                            if (totalVerses == 0) {
-                              return const SizedBox(); // Hide if no data is available instead of showing fake dots
+                            if (totalVerses == AppSize.s0) {
+                              return const SizedBox();
                             }
 
-                            // Show dynamic dots based on actual Firestore verses count
                             return Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 ...List.generate(totalVerses, (index) {
-                                  final verseNumber = index + 1;
+                                  final verseNumber = index + AppCount.c1;
 
-                                  // A verse is completed only if its number is LESS THAN the current verse
-                                  // OR if it's explicitly marked as completed in Firestore
                                   final isCompleted =
                                       verseNumber <
                                           homeViewModel.currentVerse ||
                                       verseNumber <=
                                           homeViewModel.completedVerses;
-
                                   final isCurrent =
                                       verseNumber == homeViewModel.currentVerse;
-
                                   return Expanded(
                                     child: Row(
                                       children: [
@@ -759,7 +677,6 @@ class _Body extends StatelessWidget {
                             );
                           },
                         ),
-
                         SizedBox(height: AppPadding.p16),
                         Text(
                           '${verse['verseNumber']} - ${verse['translation'] ?? ''} - ${verse['arabic'] ?? ''}',
@@ -770,17 +687,14 @@ class _Body extends StatelessWidget {
                         ),
                         SizedBox(height: AppPadding.p24),
 
-                        // Buttons
                         Row(
                           children: [
                             Expanded(
                               child: TextButton(
                                 onPressed: () async {
-                                  // Update progress in Firebase directly
                                   await viewModel.updateProgress();
                                   if (!context.mounted) return;
 
-                                  // Navigate back to home
                                   Navigator.of(
                                     context,
                                   ).popUntil((route) => route.isFirst);
@@ -812,12 +726,9 @@ class _Body extends StatelessWidget {
                             Expanded(
                               child: ElevatedButton(
                                 onPressed: () async {
-                                  // Update progress in Firebase directly
                                   await viewModel.updateProgress();
                                   if (!context.mounted) return;
 
-                                  // Navigate to next verse (for now, just go home)
-                                  // TODO: Implement next verse navigation logic
                                   Navigator.of(
                                     context,
                                   ).popUntil((route) => route.isFirst);
@@ -914,16 +825,14 @@ class _Body extends StatelessWidget {
 class _DraggableWordWidget extends StatelessWidget {
   final String word;
   final bool isDragging;
-
   const _DraggableWordWidget({required this.word, this.isDragging = false});
-
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: Container(
-        width: 66,
-        height: 40,
+        width: 66.w,
+        height: 40.h,
         padding: EdgeInsets.all(AppSize.s4),
         decoration: BoxDecoration(
           color: Color(0xFFF3F5F5),

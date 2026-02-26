@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-
 import '../../values/assets_manager.dart';
 import '../../values/color_manager.dart';
 import '../../values/values_manager.dart';
 import '../arrange_puzzle/arrange_puzzle_screen.dart';
 import 'connnect_meaning_view_model.dart';
-
 class ConnectMeaningScreen extends StatelessWidget {
   const ConnectMeaningScreen({super.key, required this.verse});
-
   final Map<String, dynamic> verse;
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -30,19 +26,16 @@ class ConnectMeaningScreen extends StatelessWidget {
     );
   }
 }
-
 class _Body extends StatelessWidget {
   final Map<String, dynamic> verse;
-
   const _Body({required this.verse});
-
   @override
   Widget build(BuildContext context) {
     return Consumer<ConnnectMeaningViewModel>(
       builder: (context, viewModel, child) {
         return Column(
           children: [
-            // Top App Bar Area
+            
             Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: AppPadding.p20,
@@ -89,10 +82,8 @@ class _Body extends StatelessWidget {
                 ],
               ),
             ),
-
             SizedBox(height: AppPadding.p16),
-
-            // Title
+            
             Text(
               'Connect Meanings',
               style: Theme.of(
@@ -106,15 +97,13 @@ class _Body extends StatelessWidget {
                 context,
               ).textTheme.titleLarge?.copyWith(color: ColorManager.primary),
             ),
-
-            // Progress Indicators (Dots)
+            
             SizedBox(height: AppPadding.p20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(4, (index) {
                 bool isCompleted = viewModel.isAllMatched;
                 bool isCurrent = index == 0;
-
                 return Container(
                   margin: EdgeInsets.symmetric(horizontal: AppPadding.p4),
                   width: isCompleted ? AppSize.s20 : AppSize.s24,
@@ -151,16 +140,14 @@ class _Body extends StatelessWidget {
                 );
               }),
             ),
-
             SizedBox(height: AppPadding.p40),
-
-            // Draggable and DragTarget Area
+            
             Expanded(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
                 child: Column(
                   children: [
-                    // Target List (English Words)
+                    
                     Expanded(
                       flex: 3,
                       child: ListView.builder(
@@ -173,12 +160,11 @@ class _Body extends StatelessWidget {
                           bool isError =
                               viewModel.failedDragTargetEnglishWord ==
                               englishWord;
-
                           return Padding(
                             padding: EdgeInsets.only(bottom: AppPadding.p16),
                             child: Row(
                               children: [
-                                // English Word Container (Left side puzzle piece)
+                                
                                 Expanded(
                                   flex: 1,
                                   child: Stack(
@@ -215,15 +201,14 @@ class _Body extends StatelessWidget {
                                     ],
                                   ),
                                 ),
-
-                                // Drag Target (Right side puzzle piece space)
+                                
                                 Expanded(
                                   flex: 1,
                                   child: Transform.translate(
                                     offset: Offset(
                                       -AppSize.s12,
                                       0,
-                                    ), // Shift left to make pieces snap together
+                                    ), 
                                     child: DragTarget<String>(
                                       builder:
                                           (
@@ -263,7 +248,7 @@ class _Body extends StatelessWidget {
                                                   Padding(
                                                     padding: EdgeInsets.only(
                                                       left: AppSize.s16,
-                                                    ), // Offset for the tab
+                                                    ), 
                                                     child: Text(
                                                       matchedArabicWord,
                                                       style: Theme.of(context)
@@ -312,8 +297,7 @@ class _Body extends StatelessWidget {
                         },
                       ),
                     ),
-
-                    // Draggable List (Arabic Words)
+                    
                     Expanded(
                       flex: 2,
                       child: Wrap(
@@ -342,8 +326,7 @@ class _Body extends StatelessWidget {
                 ),
               ),
             ),
-
-            // Next Button
+            
             Padding(
               padding: EdgeInsets.all(AppPadding.p20),
               child: GestureDetector(
@@ -386,13 +369,10 @@ class _Body extends StatelessWidget {
     );
   }
 }
-
 class _ArabicWordWidget extends StatelessWidget {
   final String word;
   final bool isDragging;
-
   const _ArabicWordWidget({required this.word, this.isDragging = false});
-
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -424,7 +404,7 @@ class _ArabicWordWidget extends StatelessWidget {
               alignment: Alignment.center,
               padding: EdgeInsets.only(
                 left: AppSize.s16,
-              ), // Offset for the cutout
+              ), 
               child: Text(
                 word,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -439,101 +419,86 @@ class _ArabicWordWidget extends StatelessWidget {
     );
   }
 }
-
 class _PuzzlePiecePainter extends CustomPainter {
   final Color color;
   final bool isLeftPiece;
   final bool hasBorder;
   final Color borderColor;
-
   _PuzzlePiecePainter({
     required this.color,
     required this.isLeftPiece,
     this.hasBorder = false,
     this.borderColor = Colors.transparent,
   });
-
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
-
     final borderPaint = Paint()
       ..color = borderColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
-
     final path = Path();
     final width = size.width;
     final height = size.height;
     final tabRadius = height * 0.25;
     final cornerRadius = AppSize.s16;
-
     if (isLeftPiece) {
-      // Left piece (English word) - has a tab sticking out on the right
+      
       path.moveTo(cornerRadius, 0);
       path.lineTo(width - tabRadius, 0);
-
-      // Right edge with tab
+      
       path.lineTo(width - tabRadius, height / 2 - tabRadius);
       path.arcToPoint(
         Offset(width - tabRadius, height / 2 + tabRadius),
         radius: Radius.circular(tabRadius),
-        clockwise: true, // Protrudes outward
+        clockwise: true, 
       );
       path.lineTo(width - tabRadius, height);
-
-      // Bottom edge
+      
       path.lineTo(cornerRadius, height);
       path.arcToPoint(
         Offset(0, height - cornerRadius),
         radius: Radius.circular(cornerRadius),
       );
-
-      // Left edge
+      
       path.lineTo(0, cornerRadius);
       path.arcToPoint(
         Offset(cornerRadius, 0),
         radius: Radius.circular(cornerRadius),
       );
     } else {
-      // Right piece (Arabic word / Target) - has a cutout on the left
+      
       path.moveTo(tabRadius, 0);
-
-      // Top edge
+      
       path.lineTo(width - cornerRadius, 0);
       path.arcToPoint(
         Offset(width, cornerRadius),
         radius: Radius.circular(cornerRadius),
       );
-
-      // Right edge
+      
       path.lineTo(width, height - cornerRadius);
       path.arcToPoint(
         Offset(width - cornerRadius, height),
         radius: Radius.circular(cornerRadius),
       );
-
-      // Bottom edge
+      
       path.lineTo(tabRadius, height);
-
-      // Left edge with cutout
+      
       path.lineTo(tabRadius, height / 2 + tabRadius);
       path.arcToPoint(
         Offset(tabRadius, height / 2 - tabRadius),
         radius: Radius.circular(tabRadius),
-        clockwise: true, // Cutout goes inward
+        clockwise: true, 
       );
       path.lineTo(tabRadius, 0);
     }
-
     canvas.drawPath(path, paint);
     if (hasBorder) {
       canvas.drawPath(path, borderPaint);
     }
   }
-
   @override
   bool shouldRepaint(covariant _PuzzlePiecePainter oldDelegate) {
     return oldDelegate.color != color ||

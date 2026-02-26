@@ -1,5 +1,4 @@
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 class HorizontalSpacing {
   static double xxxxxLargeSpace80 = 80.w;
   static double xxxxLargeSpace56 = 56.w;
@@ -12,7 +11,6 @@ class HorizontalSpacing {
   static double smallSpace8 = 8.w;
   static double xSmall4 = 4.w;
 }
-
 class VerticalSpacing {
   static double xxxxxLargeSpace80 = 80.h;
   static double xxxxLargeSpace56 = 56.h;

@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:holy_quran/values/style_manager.dart';
 import 'package:holy_quran/values/values_manager.dart';
-
 import 'color_manager.dart';
 import 'font_manager.dart';
-
 class ThemeManager {
   static ThemeData getApplicationLightTheme() {
     return ThemeData(
-      // main theme
+      
       useMaterial3: false,
       colorScheme: ColorScheme.light(
         primary: ColorManager.primary,
@@ -21,22 +19,22 @@ class ThemeManager {
       disabledColor: ColorManager.grey,
       scaffoldBackgroundColor: ColorManager.white,
       splashColor: ColorManager.lightPrimary,
-      // extensions: [
-      //   AppColors(
-      //     loginBox: const Color(0xffE3E0E0),
-      //     primaryColor: ColorManager.primary,
-      //     fontLightColor: ColorManager.lightTextPrimary,
-      //     fontExtraLightColor: ColorManager.black,
-      //     contactUsBackgroundColor: ColorManager.secondary.withValues(
-      //       alpha: 0.05,
-      //     ),
-      //     underLineTExtFieldBGColor: Colors.transparent,
-      //     exserciseItem: ColorManager.exserciseItem,
-      //     blackOrWhitr: ColorManager.black,
-      //     topScoreCardColor: ColorManager.topScoreBoxColor,
-      //   ),
-      // ],
-      //card theme
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       iconTheme: IconThemeData(color: ColorManager.primary),
       cardTheme: CardThemeData(
         color: ColorManager.white,
@@ -165,8 +163,7 @@ class ThemeManager {
           ),
         ),
       ),
-
-      // radio button
+      
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.all(ColorManager.secondary),
       ),
@@ -175,10 +172,9 @@ class ThemeManager {
       ),
     );
   }
-
   static ThemeData getApplicationDarkTheme() {
     return ThemeData(
-      // main theme
+      
       useMaterial3: false,
       iconTheme: IconThemeData(color: ColorManager.secondary),
       colorScheme: ColorScheme.dark(
@@ -191,8 +187,7 @@ class ThemeManager {
       disabledColor: ColorManager.grey,
       scaffoldBackgroundColor: ColorManager.darkGrey,
       splashColor: ColorManager.lightPrimary,
-
-      //card theme
+      
       cardTheme: CardThemeData(
         color: ColorManager.black,
         shadowColor: ColorManager.grey,
@@ -317,23 +312,22 @@ class ThemeManager {
           ),
         ),
       ),
-      // extensions: [
-      //   AppColors(
-      //     loginBox: const Color(0xff121212),
-      //     primaryColor: ColorManager.secondary,
-      //     fontLightColor: ColorManager.lightTextPrimary2,
-      //     fontExtraLightColor: ColorManager.extraLightTextPrimary2,
-      //     contactUsBackgroundColor: ColorManager.lightGrey.withValues(
-      //       alpha: 0.15,
-      //     ),
-      //     underLineTExtFieldBGColor: Colors.transparent,
-      //     exserciseItem: ColorManager.darkGrey,
-      //     blackOrWhitr: ColorManager.white,
-      //     topScoreCardColor: ColorManager.darkGrey.withValues(alpha: 0.1),
-      //   ),
-      // ],
-
-      // radio button
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.all(ColorManager.secondary),
       ),

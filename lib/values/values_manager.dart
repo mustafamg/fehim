@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 class AppMargin {
   static double m2 = 2.0.r;
   static double m4 = 4.0.r;
@@ -35,7 +34,6 @@ class AppMargin {
   static double m170 = 170.0.r;
   static double m180 = 180.0.r;
 }
-
 class AppPadding {
   static double p2 = 2.0.r;
   static double p4 = 4.0.r;
@@ -65,12 +63,12 @@ class AppPadding {
   static double p100 = 100.0.r;
   static double p120 = 120.0.r;
 }
-
 class AppSize {
   static const double s0 = 0.0;
   static const double s1_5 = 1.5;
   static const double s4 = 4.0;
   static const double s8 = 8.0;
+  static const double s10 = 10.0;
   static const double s12 = 12.0;
   static const double s14 = 14.0;
   static const double s16 = 16.0;
@@ -78,19 +76,50 @@ class AppSize {
   static const double s20 = 20.0;
   static const double s24 = 24.0;
   static const double s28 = 28.0;
+  static const double s30 = 30.0;
+  static const double s32 = 32.0;
   static const double s40 = 40.0;
   static const double s50 = 50.0;
   static const double s60 = 60.0;
+  static const double s64 = 64.0;
   static const double s65 = 65.0;
+  static const double s80 = 80.0;
   static const double s100 = 100.0;
   static const double s120 = 120.0;
   static const double s130 = 130.0;
   static const double s140 = 140.0;
   static const double s190 = 190.0;
+  static const double s280 = 280.0;
+  static const double s350 = 350.0;
   static double s1 = 1.0.w;
   static double s2 = 2.0.w;
 }
-
+class AppCount {
+  static const int c1 = 1;
+  static const int c2 = 2;
+  static const int c3 = 3;
+  static const int c4 = 4;
+}
+class AppRatio {
+  static const double r0_3 = 0.3;
+  static const double r0_5 = 0.5;
+  static const double r0_6 = 0.6;
+  static const double r0_65 = 0.65;
+  static const double r0_8 = 0.8;
+  static const double r0_15 = 0.15;
+}
+class AppOpacity {
+  static const double o0_3 = 0.3;
+  static const double a0_1 = 0.1;
+  static const double a0_3 = 0.3;
+  static const double a0_8 = 0.8;
+  static const int a20 = 20;
+}
+class AppDuration {
+  static const int d1 = 1;
+  static const int d100 = 100;
+  static const int d300 = 300;
+}
 class WidgetWidth {
   static double w05 = 0.5.w;
   static double w1 = 1.0.w;
@@ -158,7 +187,6 @@ class WidgetWidth {
   static double w320 = 320.0.w;
   static double w400 = 400.0.w;
 }
-
 class WidgetHeight {
   static double h1 = handleLandscape(1.0.h);
   static double h2 = handleLandscape(2.0.h);
@@ -297,7 +325,6 @@ class WidgetHeight {
   static double h990 = handleLandscape(990.0.h);
   static double h1000 = handleLandscape(1000.0.h);
 }
-
 class WidgetBorderRadius {
   static double b1 = 1.0.r;
   static double b4 = 4.0.r;
@@ -322,7 +349,6 @@ class WidgetBorderRadius {
   static double b80 = 80.0.r;
   static double b100 = 100.0.r;
 }
-
 dynamic handleLandscape(value) {
   if (ScreenUtil().orientation == Orientation.portrait) {
     return value;

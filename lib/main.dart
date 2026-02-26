@@ -11,39 +11,29 @@ import 'package:holy_quran/routes/routes_manager.dart';
 import 'package:holy_quran/utils/helper/shared_pref.dart';
 import 'package:holy_quran/values/theme_manager.dart';
 import 'package:injectable/injectable.dart';
-
 import 'generated/l10n.dart';
-
 final getIt = GetIt.instance;
-
 @InjectableInit(
-  initializerName: 'init', // default
-  preferRelativeImports: true, // default
-  asExtension: true, // default
+  initializerName: 'init', 
+  preferRelativeImports: true, 
+  asExtension: true, 
 )
 void configureDependencies() => getIt.init();
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
   configureDependencies();
   await ScreenUtil.ensureScreenSize();
-
   await SharedPrefrencesHelper.setUpShared();
-
-  // await Hive.initFlutter();
-  // Hive.registerAdapter(TokenAdapter());
-
-  // _registerTokenService();
+  
+  
+  
   runApp(const MyApp());
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
@@ -79,36 +69,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-// void _registerTokenService() {
-//   GetIt.instance.registerSingleton(
-//     Dio(
-//         BaseOptions(
-//           baseUrl: ConstStrings.baseURL,
-//           receiveDataWhenStatusError: true,
-//         ),
-//       )
-//       ..interceptors.add(
-//         PrettyDioLogger(
-//           requestHeader: true,
-//           requestBody: true,
-//           responseBody: true,
-//           responseHeader: false,
-//           error: true,
-//           compact: true,
-//         ),
-//       ),
-//   );
-//   GetIt.instance.registerSingleton<ITokenLocalRepository>(
-//     TokenLocalRepository(),
-//   );
-//   GetIt.instance.registerSingleton<ITokenRepository>(
-//     TokenRepository(baseUrl: ConstStrings.baseURL),
-//   );
-//   GetIt.instance.registerSingleton<TokenService>(
-//     TokenService(
-//       tokenLocalRepository: getIt<ITokenLocalRepository>(),
-//       tokenRepository: getIt<ITokenRepository>(),
-//     ),
-//   );
-// }

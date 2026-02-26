@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 class FontManager {
   static String fontFamily = "Inter";
 }
-
 class FontWeightManager {
   static const FontWeight thin = FontWeight.w100;
   static const FontWeight extraLight = FontWeight.w200;
@@ -15,7 +13,6 @@ class FontWeightManager {
   static const FontWeight bold = FontWeight.w700;
   static const FontWeight extraBold = FontWeight.w800;
 }
-
 class FontSizeManager {
   static double s2 = 2.0.sp;
   static double s4 = 4.0.sp;
