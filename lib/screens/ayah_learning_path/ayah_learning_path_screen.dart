@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../values/color_manager.dart';
 import '../../values/values_manager.dart';
 import '../connect_meaning/connect_meaning_screen.dart';
 import 'ayah_learning_path_view_model.dart';
+
 class AyahLearningPathScreen extends StatelessWidget {
   final Map<String, dynamic> verse;
   const AyahLearningPathScreen({super.key, required this.verse});
@@ -18,12 +20,14 @@ class AyahLearningPathScreen extends StatelessWidget {
     );
   }
 }
+
 class _Body extends StatefulWidget {
   final Map<String, dynamic> verse;
   const _Body({required this.verse});
   @override
   State<_Body> createState() => _BodyState();
 }
+
 class _BodyState extends State<_Body> {
   late PageController _pageController;
   @override
@@ -31,7 +35,6 @@ class _BodyState extends State<_Body> {
     super.initState();
     _pageController = PageController(viewportFraction: AppRatio.r0_65);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      
       _pageController.animateToPage(
         0,
         duration: Duration(milliseconds: AppDuration.d1),
@@ -39,11 +42,13 @@ class _BodyState extends State<_Body> {
       );
     });
   }
+
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AyahLearningPathViewModel>(
@@ -53,7 +58,6 @@ class _BodyState extends State<_Body> {
         }
         return Column(
           children: [
-            
             Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: AppPadding.p20,
@@ -95,7 +99,7 @@ class _BodyState extends State<_Body> {
               ),
             ),
             SizedBox(height: AppPadding.p32),
-            
+
             Center(
               child: Column(
                 children: [
@@ -117,13 +121,12 @@ class _BodyState extends State<_Body> {
               ),
             ),
             SizedBox(height: AppPadding.p24),
-            
+
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(viewModel.words.length, (index) {
                 if (index < viewModel.currentIndex ||
                     viewModel.isWordFinished(index)) {
-                  
                   return Padding(
                     padding: EdgeInsets.symmetric(horizontal: AppPadding.p4),
                     child: Icon(
@@ -133,7 +136,6 @@ class _BodyState extends State<_Body> {
                     ),
                   );
                 } else if (index == viewModel.currentIndex) {
-                  
                   return Padding(
                     padding: EdgeInsets.symmetric(horizontal: AppPadding.p4),
                     child: Container(
@@ -159,7 +161,6 @@ class _BodyState extends State<_Body> {
                     ),
                   );
                 } else {
-                  
                   return Padding(
                     padding: EdgeInsets.symmetric(horizontal: AppPadding.p4),
                     child: Container(
@@ -178,13 +179,13 @@ class _BodyState extends State<_Body> {
               }),
             ),
             SizedBox(height: AppPadding.p40),
-            
+
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
                 physics: viewModel.isWordFinished(viewModel.currentIndex)
                     ? const BouncingScrollPhysics()
-                    : const NeverScrollableScrollPhysics(), 
+                    : const NeverScrollableScrollPhysics(),
                 onPageChanged: (index) {
                   viewModel.setCurrentIndex(index);
                 },
@@ -194,30 +195,30 @@ class _BodyState extends State<_Body> {
                   final isCurrent = index == viewModel.currentIndex;
                   final isPlayed = viewModel.isWordFinished(index);
                   final isPlaying = isCurrent && viewModel.isPlaying;
-                  
+
                   final topColor = (isPlayed || (isCurrent && isPlaying))
                       ? Colors.green
                       : Colors.blueGrey.shade600;
                   return AnimatedBuilder(
                     animation: _pageController,
                     builder: (context, child) {
-                      double value = AppSize.s0;
-                      if (_pageController.position.haveDimensions) {
+                      double value = (viewModel.currentIndex - index)
+                          .toDouble();
+                      if (_pageController.hasClients &&
+                          _pageController.position.haveDimensions) {
                         value = _pageController.page! - index;
                       }
-                      
-                      
-                      double rotationZ =
-                          value *
-                          AppRatio.r0_15; 
-                      
+
+                      double rotationZ = value * AppRatio.r0_15;
+
                       double translateY = value.abs() * AppSize.s30;
-                      
-                      double scale =
-                          (AppSize.s1 - (value.abs() * AppRatio.r0_15)).clamp(
-                            AppRatio.r0_8,
-                            AppSize.s1,
-                          );
+
+                      double scale = (1 - (value.abs() * AppRatio.r0_15)).clamp(
+                        AppRatio.r0_8,
+                        1.0,
+                      );
+                      double opacity = (1 - (value.abs() * AppRatio.r0_5))
+                          .clamp(0.0, 1.0);
                       return Center(
                         child: Transform(
                           transform: Matrix4.identity()
@@ -226,12 +227,10 @@ class _BodyState extends State<_Body> {
                             ..scale(scale),
                           alignment: Alignment.center,
                           child: Opacity(
-                            opacity:
-                                (AppSize.s1 - (value.abs() * AppRatio.r0_5))
-                                    .clamp(AppRatio.r0_5, AppSize.s1),
+                            opacity: opacity,
                             child: SizedBox(
                               height: AppSize.s350,
-                              width: AppSize.s280, 
+                              width: AppSize.s280,
                               child: child,
                             ),
                           ),
@@ -257,7 +256,6 @@ class _BodyState extends State<_Body> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          
                           Expanded(
                             flex: AppCount.c3,
                             child: Container(
@@ -269,7 +267,6 @@ class _BodyState extends State<_Body> {
                               ),
                               child: Stack(
                                 children: [
-                                  
                                   Positioned(
                                     top: AppPadding.p16,
                                     left: AppPadding.p16,
@@ -297,7 +294,7 @@ class _BodyState extends State<_Body> {
                                       ),
                                     ),
                                   ),
-                                  
+
                                   Center(
                                     child: Text(
                                       word['arabic'] ?? '',
@@ -317,7 +314,7 @@ class _BodyState extends State<_Body> {
                               ),
                             ),
                           ),
-                          
+
                           Expanded(
                             flex: AppCount.c2,
                             child: Center(
@@ -336,7 +333,7 @@ class _BodyState extends State<_Body> {
                 },
               ),
             ),
-            
+
             Padding(
               padding: EdgeInsets.all(AppPadding.p20),
               child: GestureDetector(
@@ -349,7 +346,6 @@ class _BodyState extends State<_Body> {
                             curve: Curves.easeInOut,
                           );
                         } else {
-                          
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
@@ -359,7 +355,7 @@ class _BodyState extends State<_Body> {
                           );
                         }
                       }
-                    : null, 
+                    : null,
                 child: Container(
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(vertical: AppPadding.p16),

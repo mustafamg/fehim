@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+
 import '../../values/assets_manager.dart';
 import '../../values/color_manager.dart';
 import '../../values/values_manager.dart';
-import '../arrange_puzzle/arrange_puzzle_screen.dart';
+import '../fill_gaps_screen/fill_gaps_screen.dart';
 import 'connnect_meaning_view_model.dart';
+
 class ConnectMeaningScreen extends StatelessWidget {
   const ConnectMeaningScreen({super.key, required this.verse});
   final Map<String, dynamic> verse;
@@ -26,6 +28,7 @@ class ConnectMeaningScreen extends StatelessWidget {
     );
   }
 }
+
 class _Body extends StatelessWidget {
   final Map<String, dynamic> verse;
   const _Body({required this.verse});
@@ -35,7 +38,6 @@ class _Body extends StatelessWidget {
       builder: (context, viewModel, child) {
         return Column(
           children: [
-            
             Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: AppPadding.p20,
@@ -83,7 +85,7 @@ class _Body extends StatelessWidget {
               ),
             ),
             SizedBox(height: AppPadding.p16),
-            
+
             Text(
               'Connect Meanings',
               style: Theme.of(
@@ -97,7 +99,7 @@ class _Body extends StatelessWidget {
                 context,
               ).textTheme.titleLarge?.copyWith(color: ColorManager.primary),
             ),
-            
+
             SizedBox(height: AppPadding.p20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -141,13 +143,12 @@ class _Body extends StatelessWidget {
               }),
             ),
             SizedBox(height: AppPadding.p40),
-            
+
             Expanded(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
                 child: Column(
                   children: [
-                    
                     Expanded(
                       flex: 3,
                       child: ListView.builder(
@@ -164,7 +165,6 @@ class _Body extends StatelessWidget {
                             padding: EdgeInsets.only(bottom: AppPadding.p16),
                             child: Row(
                               children: [
-                                
                                 Expanded(
                                   flex: 1,
                                   child: Stack(
@@ -201,14 +201,11 @@ class _Body extends StatelessWidget {
                                     ],
                                   ),
                                 ),
-                                
+
                                 Expanded(
                                   flex: 1,
                                   child: Transform.translate(
-                                    offset: Offset(
-                                      -AppSize.s12,
-                                      0,
-                                    ), 
+                                    offset: Offset(-AppSize.s12, 0),
                                     child: DragTarget<String>(
                                       builder:
                                           (
@@ -248,7 +245,7 @@ class _Body extends StatelessWidget {
                                                   Padding(
                                                     padding: EdgeInsets.only(
                                                       left: AppSize.s16,
-                                                    ), 
+                                                    ),
                                                     child: Text(
                                                       matchedArabicWord,
                                                       style: Theme.of(context)
@@ -297,7 +294,7 @@ class _Body extends StatelessWidget {
                         },
                       ),
                     ),
-                    
+
                     Expanded(
                       flex: 2,
                       child: Wrap(
@@ -326,7 +323,7 @@ class _Body extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             Padding(
               padding: EdgeInsets.all(AppPadding.p20),
               child: GestureDetector(
@@ -335,8 +332,7 @@ class _Body extends StatelessWidget {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                ArrangePuzzleScreen(verse: verse),
+                            builder: (context) => FillGapsScreen(verse: verse),
                           ),
                         );
                       }
@@ -369,6 +365,7 @@ class _Body extends StatelessWidget {
     );
   }
 }
+
 class _ArabicWordWidget extends StatelessWidget {
   final String word;
   final bool isDragging;
@@ -402,9 +399,7 @@ class _ArabicWordWidget extends StatelessWidget {
             ),
             Container(
               alignment: Alignment.center,
-              padding: EdgeInsets.only(
-                left: AppSize.s16,
-              ), 
+              padding: EdgeInsets.only(left: AppSize.s16),
               child: Text(
                 word,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -419,6 +414,7 @@ class _ArabicWordWidget extends StatelessWidget {
     );
   }
 }
+
 class _PuzzlePiecePainter extends CustomPainter {
   final Color color;
   final bool isLeftPiece;
@@ -445,52 +441,50 @@ class _PuzzlePiecePainter extends CustomPainter {
     final tabRadius = height * 0.25;
     final cornerRadius = AppSize.s16;
     if (isLeftPiece) {
-      
       path.moveTo(cornerRadius, 0);
       path.lineTo(width - tabRadius, 0);
-      
+
       path.lineTo(width - tabRadius, height / 2 - tabRadius);
       path.arcToPoint(
         Offset(width - tabRadius, height / 2 + tabRadius),
         radius: Radius.circular(tabRadius),
-        clockwise: true, 
+        clockwise: true,
       );
       path.lineTo(width - tabRadius, height);
-      
+
       path.lineTo(cornerRadius, height);
       path.arcToPoint(
         Offset(0, height - cornerRadius),
         radius: Radius.circular(cornerRadius),
       );
-      
+
       path.lineTo(0, cornerRadius);
       path.arcToPoint(
         Offset(cornerRadius, 0),
         radius: Radius.circular(cornerRadius),
       );
     } else {
-      
       path.moveTo(tabRadius, 0);
-      
+
       path.lineTo(width - cornerRadius, 0);
       path.arcToPoint(
         Offset(width, cornerRadius),
         radius: Radius.circular(cornerRadius),
       );
-      
+
       path.lineTo(width, height - cornerRadius);
       path.arcToPoint(
         Offset(width - cornerRadius, height),
         radius: Radius.circular(cornerRadius),
       );
-      
+
       path.lineTo(tabRadius, height);
-      
+
       path.lineTo(tabRadius, height / 2 + tabRadius);
       path.arcToPoint(
         Offset(tabRadius, height / 2 - tabRadius),
         radius: Radius.circular(tabRadius),
-        clockwise: true, 
+        clockwise: true,
       );
       path.lineTo(tabRadius, 0);
     }
@@ -499,6 +493,7 @@ class _PuzzlePiecePainter extends CustomPainter {
       canvas.drawPath(path, borderPaint);
     }
   }
+
   @override
   bool shouldRepaint(covariant _PuzzlePiecePainter oldDelegate) {
     return oldDelegate.color != color ||

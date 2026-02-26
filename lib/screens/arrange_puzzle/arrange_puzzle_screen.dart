@@ -102,9 +102,17 @@ class _ArrangePuzzleScreenState extends State<ArrangePuzzleScreen> {
   }
 }
 
-class _Body extends StatelessWidget {
+class _Body extends StatefulWidget {
   final Map<String, dynamic> verse;
   const _Body({required this.verse});
+
+  @override
+  State<_Body> createState() => _BodyState();
+}
+
+class _BodyState extends State<_Body> {
+  bool _isFinishLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ArrangePuzzleViewModel>(
@@ -260,7 +268,7 @@ class _Body extends StatelessWidget {
             ),
             SizedBox(height: AppPadding.p40),
             SizedBox(
-              height: context.height * AppRatio.r0_3,
+              height: context.height * AppRatio.r0_5,
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
                 child: Container(
@@ -299,7 +307,7 @@ class _Body extends StatelessWidget {
                                         return DragTarget<String>(
                                           builder: (context, candidateData, rejectedData) {
                                             return Container(
-                                              width: WidgetWidth.w66,
+                                              width: WidgetWidth.w60,
                                               height: WidgetHeight.h40,
                                               padding: EdgeInsets.all(
                                                 AppSize.s4,
@@ -486,8 +494,8 @@ class _Body extends StatelessWidget {
             Padding(
               padding: EdgeInsets.all(AppPadding.p20),
               child: GestureDetector(
-                onTap: viewModel.isAllMatched
-                    ? () => _showFinishDialog(context)
+                onTap: viewModel.isAllMatched && !_isFinishLoading
+                    ? _handleFinishTap
                     : null,
                 child: Container(
                   width: double.infinity,
@@ -499,14 +507,34 @@ class _Body extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppPadding.p12),
                   ),
                   alignment: Alignment.center,
-                  child: Text(
-                    'Finish',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: viewModel.isAllMatched
-                          ? Colors.white
-                          : Colors.grey.shade500,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Text(
+                        'Finish',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: viewModel.isAllMatched
+                                  ? Colors.white
+                                  : Colors.grey.shade500,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      if (_isFinishLoading)
+                        Positioned(
+                          right: AppPadding.p24,
+                          child: SizedBox(
+                            width: AppSize.s18,
+                            height: AppSize.s18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: AppSize.s2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -517,17 +545,32 @@ class _Body extends StatelessWidget {
     );
   }
 
-  void _showFinishDialog(BuildContext context) async {
-    final viewModel = Provider.of<ArrangePuzzleViewModel>(
-      context,
-      listen: false,
-    );
+  Future<void> _handleFinishTap() async {
+    if (_isFinishLoading) return;
+    setState(() {
+      _isFinishLoading = true;
+    });
+
+    try {
+      await _showFinishDialog();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isFinishLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _showFinishDialog() async {
+    final viewModel = context.read<ArrangePuzzleViewModel>();
     final homeViewModel = getIt<SurahSelectionScreenViewModel>();
     if (homeViewModel.totalVerses == AppSize.s0) {
       await homeViewModel.initialize();
     }
-    if (!context.mounted) return;
-    showModalBottomSheet(
+    if (!mounted) return;
+
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -561,7 +604,7 @@ class _Body extends StatelessWidget {
                   ),
                   padding: EdgeInsets.all(AppPadding.p8),
                   child: SvgPicture.asset(
-                    SvgAssets.confetti,
+                    SvgAssets.confettiIcon,
                     fit: BoxFit.contain,
                     width: AppSize.s40,
                     height: AppSize.s40,
@@ -679,7 +722,7 @@ class _Body extends StatelessWidget {
                         ),
                         SizedBox(height: AppPadding.p16),
                         Text(
-                          '${verse['verseNumber']} - ${verse['translation'] ?? ''} - ${verse['arabic'] ?? ''}',
+                          '${widget.verse['verseNumber']} - ${widget.verse['translation'] ?? ''} - ${widget.verse['arabic'] ?? ''}',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Colors.white.withValues(alpha: 0.9),
@@ -767,59 +810,57 @@ class _Body extends StatelessWidget {
       },
     );
   }
+}
 
-  Widget _buildProgressDot(
-    BuildContext context,
-    bool isCompleted,
-    String number, {
-    bool isCurrent = false,
-  }) {
-    return Container(
-      width: AppSize.s28,
-      height: AppSize.s28,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: isCompleted ? Colors.white : Colors.transparent,
-        border: Border.all(
-          color: isCurrent ? Colors.white : Colors.white.withValues(alpha: 0.5),
-          width: 2,
-        ),
+Widget _buildProgressDot(
+  BuildContext context,
+  bool isCompleted,
+  String number, {
+  bool isCurrent = false,
+}) {
+  return Container(
+    width: AppSize.s28,
+    height: AppSize.s28,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: isCompleted ? Colors.white : Colors.transparent,
+      border: Border.all(
+        color: isCurrent ? Colors.white : Colors.white.withValues(alpha: 0.5),
+        width: 2,
       ),
-      alignment: Alignment.center,
-      child: isCompleted
-          ? Icon(Icons.check, color: ColorManager.secondary, size: AppSize.s16)
-          : Text(
-              number,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+    ),
+    alignment: Alignment.center,
+    child: isCompleted
+        ? Icon(Icons.check, color: ColorManager.secondary, size: AppSize.s16)
+        : Text(
+            number,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
-    );
-  }
+          ),
+  );
+}
 
-  Widget _buildDottedLine() {
-    return Expanded(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final dashWidth = 4.0;
-          final dashSpace = 3.0;
-          final dashCount = (constraints.maxWidth / (dashWidth + dashSpace))
-              .floor();
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(dashCount, (index) {
-              return Container(
-                width: dashWidth,
-                height: 2,
-                color: Colors.white.withValues(alpha: 0.5),
-              );
-            }),
+Widget _buildDottedLine() {
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final dashWidth = 4.0;
+      final dashSpace = 3.0;
+      final dashCount = (constraints.maxWidth / (dashWidth + dashSpace))
+          .floor();
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(dashCount, (index) {
+          return Container(
+            width: dashWidth,
+            height: 2,
+            color: Colors.white.withValues(alpha: 0.5),
           );
-        },
-      ),
-    );
-  }
+        }),
+      );
+    },
+  );
 }
 
 class _DraggableWordWidget extends StatelessWidget {
@@ -831,7 +872,7 @@ class _DraggableWordWidget extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: Container(
-        width: 66.w,
+        width: 60.w,
         height: 40.h,
         padding: EdgeInsets.all(AppSize.s4),
         decoration: BoxDecoration(

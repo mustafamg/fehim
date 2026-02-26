@@ -143,27 +143,14 @@ class _SampleSurah {
         'juzNumber': 30,
         'surahNumber': 113,
         'names': {'en': 'Al-Falaq', 'ar': 'سورة الفلق'},
-        'placeOfRevelation': {'en': 'Mecca (Meccan)', 'ar': 'مكية'},
-        'position': {
-          'en': '20th from the end of the Qur\'an',
-          'ar': 'الـ 20 من نهاية القرآن',
-        },
-        'otherNames': {'en': 'Al-Mu\'awwidhatayn', 'ar': 'المعوذتين'},
-        'briefContext': {
-          'en':
-              'Surah Al-Falaq was revealed in Mecca during a difficult period...',
-          'ar': 'نزلت سورة الفلق في مكة في فترة صعبة...',
-        },
       },
       verses: [
         {
           'id': '1',
           'verseNumber': 1,
-          'arabic': 'قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ',
+          'arabic': 'قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ',
           'translations': {
-            'en': 'Say: "I seek refuge with the Lord of the daybreak"',
-            'ar':
-                'قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ', // Optional if you need tafseer
+            'en': 'Say: I seek refuge with the Lord of the daybreak',
           },
           'audioUrl':
               'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6226.mp3',
@@ -181,7 +168,7 @@ class _SampleSurah {
                   'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6226.mp3',
             },
             {
-              'arabic': 'بِرَبِّ',
+              'arabic': 'بِرَبِّ',
               'translation': {'en': 'in the Lord'},
               'audioUrl':
                   'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6226.mp3',
@@ -206,25 +193,25 @@ class _SampleSurah {
               'arabic': 'مِن',
               'translation': {'en': 'From'},
               'audioUrl':
-                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6226.mp3',
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6227.mp3',
             },
             {
               'arabic': 'شَرِّ',
               'translation': {'en': 'the evil'},
               'audioUrl':
-                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6226.mp3',
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6227.mp3',
             },
             {
               'arabic': 'مَا',
               'translation': {'en': 'of what'},
               'audioUrl':
-                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6226.mp3',
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6227.mp3',
             },
             {
               'arabic': 'خَلَقَ',
-              'translation': {'en': 'He has created'},
+              'translation': {'en': 'He created'},
               'audioUrl':
-                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6226.mp3',
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6227.mp3',
             },
           ],
         },
@@ -232,12 +219,41 @@ class _SampleSurah {
           'id': '3',
           'verseNumber': 3,
           'arabic': 'وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ',
-          'translations': {
-            'en':
-                'And from the evil of the darkening (night) as it comes with its darkness',
-          },
+          'translations': {'en': 'And from the evil of the darkening night'},
           'audioUrl':
               'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6228.mp3',
+          'words': [
+            {
+              'arabic': 'وَمِن',
+              'translation': {'en': 'And from'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6228.mp3',
+            },
+            {
+              'arabic': 'شَرِّ',
+              'translation': {'en': 'the evil'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6228.mp3',
+            },
+            {
+              'arabic': 'غَاسِقٍ',
+              'translation': {'en': 'of darkness'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6228.mp3',
+            },
+            {
+              'arabic': 'إِذَا',
+              'translation': {'en': 'when'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6228.mp3',
+            },
+            {
+              'arabic': 'وَقَبَ',
+              'translation': {'en': 'it settles'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6228.mp3',
+            },
+          ],
         },
         {
           'id': '4',
@@ -246,151 +262,80 @@ class _SampleSurah {
           'translations': {'en': 'And from the evil of the blowers in knots'},
           'audioUrl':
               'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6229.mp3',
+          'words': [
+            {
+              'arabic': 'وَمِن',
+              'translation': {'en': 'And from'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6229.mp3',
+            },
+            {
+              'arabic': 'شَرِّ',
+              'translation': {'en': 'the evil'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6229.mp3',
+            },
+            {
+              'arabic': 'النَّفَّاثَاتِ',
+              'translation': {'en': 'the blowers'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6229.mp3',
+            },
+            {
+              'arabic': 'فِي',
+              'translation': {'en': 'in'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6229.mp3',
+            },
+            {
+              'arabic': 'الْعُقَدِ',
+              'translation': {'en': 'the knots'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6229.mp3',
+            },
+          ],
         },
         {
           'id': '5',
           'verseNumber': 5,
           'arabic': 'وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ',
           'translations': {
-            'en': 'And from the evil of the envious when he envies',
+            'en': 'And from the evil of the envier when he envies',
           },
           'audioUrl':
               'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6230.mp3',
-        },
-      ],
-    ),
-    _SampleSurah(
-      id: 'an_nas',
-      info: {
-        'totalVerses': 6,
-        'juzNumber': 30,
-        'surahNumber': 114,
-        'names': {'en': 'An-Nas', 'ar': 'سورة الناس'},
-        'placeOfRevelation': {'en': 'Mecca (Meccan)', 'ar': 'مكية'},
-        'position': {
-          'en': '21st from the end of the Qur\'an',
-          'ar': 'الـ 21 من نهاية القرآن',
-        },
-        'otherNames': {'en': 'Al-Mu\'awwidhatayn', 'ar': 'المعوذتين'},
-        'briefContext': {
-          'en':
-              'Surah An-Nas was revealed in Mecca during a difficult period...',
-          'ar': 'نزلت سورة الناس في مكة في فترة صعبة...',
-        },
-      },
-      verses: [
-        {
-          'id': '1',
-          'verseNumber': 1,
-          'arabic': 'قُلْ أَعُوذُ بِرَبِّ النَّاسِ',
-          'translations': {
-            'en': 'Say: "I seek refuge with the Lord of mankind"',
-            'ar':
-                'قُلْ أَعُوذُ بِرَبِّ النَّاسِ', // Optional if you need tafseer
-          },
-          'audioUrl':
-              'https://cdn.islamic.network/quran/audio/64/ar.alafasy/6231.mp3',
-        },
-        {
-          'id': '2',
-          'verseNumber': 2,
-          'arabic': 'مَلِكِ النَّاسِ',
-          'translations': {'en': 'The King of mankind'},
-          'audioUrl':
-              'https://cdn.islamic.network/quran/audio/64/ar.alafasy/6232.mp3',
-        },
-        {
-          'id': '3',
-          'verseNumber': 3,
-          'arabic': 'إِلَٰهِ النَّاسِ',
-          'translations': {'en': 'The God of mankind'},
-          'audioUrl':
-              'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6233.mp3',
-        },
-        {
-          'id': '4',
-          'verseNumber': 4,
-          'arabic': 'مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ',
-          'translations': {
-            'en': 'From the evil of the whisperer who withdraws',
-          },
-          'audioUrl':
-              'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6234.mp3',
-        },
-        {
-          'id': '5',
-          'verseNumber': 5,
-          'arabic': 'الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ',
-          'translations': {'en': 'Who whispers into the breasts of mankind'},
-          'audioUrl':
-              'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6235.mp3',
-        },
-        {
-          'id': '6',
-          'verseNumber': 6,
-          'arabic': 'مِنَ الْجِنَّةِ وَ النَّاسِ',
-          'translations': {'en': 'From among the jinn and mankind'},
-          'audioUrl':
-              'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6236.mp3"',
-        },
-      ],
-    ),
-    _SampleSurah(
-      id: 'al_ikhlas',
-      info: {
-        'totalVerses': 4,
-        'juzNumber': 30,
-        'surahNumber': 112,
-        'names': {'en': 'Al-Ikhlas', 'ar': 'سورة الإخلاص'},
-        'placeOfRevelation': {'en': 'Mecca (Meccan)', 'ar': 'مكية'},
-        'position': {
-          'en': '22nd from the end of the Qur\'an',
-          'ar': 'الـ 22 من نهاية القرآن',
-        },
-        'otherNames': {'en': 'Al-Tawhid', 'ar': 'التوحيد'},
-        'briefContext': {
-          'en':
-              'Surah Al-Ikhlas was revealed in Mecca during a difficult period...',
-          'ar': 'نزلت سورة الإخلاص في مكة في فترة صعبة...',
-        },
-      },
-      verses: [
-        {
-          'id': '1',
-          'verseNumber': 1,
-          'arabic': 'قُلْ هُوَ اللَّهُ أَحَدٌ',
-          'translations': {
-            'en': 'Say: "He is Allah, the One"',
-            'ar': 'قُلْ هُوَ اللَّهُ أَحَدٌ', // Optional if you need tafseer
-          },
-          'audioUrl':
-              'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6222.mp3',
-        },
-        {
-          'id': '2',
-          'verseNumber': 2,
-          'arabic': 'اللَّهُ الصَّمَدُ',
-          'translations': {'en': 'Allah, the Self-Sufficient'},
-          'audioUrl':
-              'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6223.mp3',
-        },
-        {
-          'id': '3',
-          'verseNumber': 3,
-          'arabic': 'لَمْ يَلِدْ وَلَمْ يُولَدْ',
-          'translations': {'en': 'He begets not, nor was He begotten'},
-          'audioUrl':
-              'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6224.mp3',
-        },
-        {
-          'id': '4',
-          'verseNumber': 4,
-          'arabic': 'وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ',
-          'translations': {
-            'en': 'And there is none co-equal or comparable unto Him',
-          },
-          'audioUrl':
-              'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6225.mp3',
+          'words': [
+            {
+              'arabic': 'وَمِن',
+              'translation': {'en': 'And from'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6230.mp3',
+            },
+            {
+              'arabic': 'شَرِّ',
+              'translation': {'en': 'the evil'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6230.mp3',
+            },
+            {
+              'arabic': 'حَاسِدٍ',
+              'translation': {'en': 'an envier'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6230.mp3',
+            },
+            {
+              'arabic': 'إِذَا',
+              'translation': {'en': 'when'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6230.mp3',
+            },
+            {
+              'arabic': 'حَسَدَ',
+              'translation': {'en': 'he envies'},
+              'audioUrl':
+                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6230.mp3',
+            },
+          ],
         },
       ],
     ),
