@@ -1,16 +1,20 @@
 import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
+
 @injectable
 class SurahLearningPathViewModel extends ChangeNotifier {
   final AudioPlayer _audioPlayer = AudioPlayer();
-  
+
   StreamSubscription<PlayerState>? _playerStateSubscription;
   StreamSubscription<Duration>? _durationSubscription;
   StreamSubscription<Duration>? _positionSubscription;
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+  bool _isAudioLoading = false;
+  bool get isAudioLoading => _isAudioLoading;
   List<String> _arabicWords = [];
   List<String> get arabicWords => _arabicWords;
   List<String> _englishWords = [];
@@ -50,7 +54,6 @@ class SurahLearningPathViewModel extends ChangeNotifier {
       notifyListeners();
     });
     _audioPlayer.onPlayerComplete.listen((_) {
-      
       _isPlaying = false;
       _hasFinishedPlaying = true;
       _currentAudioPosition = Duration.zero;
@@ -61,16 +64,16 @@ class SurahLearningPathViewModel extends ChangeNotifier {
   void initDummyData() {
     _isLoading = true;
     notifyListeners();
-    
+
     _arabicWords = ['مِن', 'شَرِّ', 'مَا', 'خَلَقَ'];
     _englishWords = ['From the evil', 'of what', 'He', 'has created'];
-    
+
     _currentHighlightedWordIndex = 0;
     _currentHighlightedTranslationIndex = 0;
     _isLoading = false;
     notifyListeners();
   }
-  
+
   Future<void> loadVerseData({
     required String arabicText,
     required String translationText,
@@ -78,10 +81,9 @@ class SurahLearningPathViewModel extends ChangeNotifier {
   }) async {
     _isLoading = true;
     notifyListeners();
-    
-    
+
     _arabicWords = arabicText.split(' ');
-    
+
     _englishWords = translationText.split(' ');
     _currentHighlightedWordIndex = 0;
     _currentHighlightedTranslationIndex = 0;
@@ -90,9 +92,8 @@ class SurahLearningPathViewModel extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+
   void _updateHighlights(Duration position) {
-    
-    
     if (_totalAudioDuration.inMilliseconds == 0 || _arabicWords.isEmpty) return;
     final progress =
         position.inMilliseconds / _totalAudioDuration.inMilliseconds;
@@ -108,11 +109,10 @@ class SurahLearningPathViewModel extends ChangeNotifier {
         newEnglishIndex != _currentHighlightedTranslationIndex) {
       _currentHighlightedWordIndex = newArabicIndex;
       _currentHighlightedTranslationIndex = newEnglishIndex;
-      
     }
   }
+
   Future<void> resetAudio() async {
-    
     if (_currentAudioUrl != null) {
       await _audioPlayer.stop();
       await _audioPlayer.setSourceUrl(_currentAudioUrl!);
@@ -125,31 +125,45 @@ class SurahLearningPathViewModel extends ChangeNotifier {
     _updateHighlights(Duration.zero);
     notifyListeners();
   }
+
   Future<void> playAudio() async {
     if (_currentAudioUrl == null) return;
-    if (_hasFinishedPlaying || _currentAudioPosition == Duration.zero) {
-      await _audioPlayer.stop();
-      _hasFinishedPlaying = false;
-      _currentAudioPosition = Duration.zero;
-      _updateHighlights(Duration.zero);
-      await _audioPlayer.play(UrlSource(_currentAudioUrl!));
-    } else {
-      await _audioPlayer.resume();
+
+    _isAudioLoading = true;
+    notifyListeners();
+
+    try {
+      if (_hasFinishedPlaying || _currentAudioPosition == Duration.zero) {
+        await _audioPlayer.stop();
+        _hasFinishedPlaying = false;
+        _currentAudioPosition = Duration.zero;
+        _updateHighlights(Duration.zero);
+        await _audioPlayer.play(UrlSource(_currentAudioUrl!));
+      } else {
+        await _audioPlayer.resume();
+      }
+    } catch (e) {
+      // Handle audio loading error
+    } finally {
+      _isAudioLoading = false;
+      notifyListeners();
     }
   }
+
   Future<void> pauseAudio() async {
     await _audioPlayer.pause();
   }
+
   Future<void> seekAudio(Duration position) async {
     await _audioPlayer.seek(position);
   }
+
   @override
   void dispose() {
-    
     _playerStateSubscription?.cancel();
     _durationSubscription?.cancel();
     _positionSubscription?.cancel();
-    
+
     _audioPlayer.dispose();
     super.dispose();
   }

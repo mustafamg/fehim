@@ -211,34 +211,99 @@ class _BodyState extends State<_Body> {
               ).textTheme.titleLarge?.copyWith(color: ColorManager.primary),
             ),
             SizedBox(height: AppPadding.p20),
+
+            // Page navigation with arrows and page indicator
+            if (viewModel.totalPages > 1)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Left arrow
+                    GestureDetector(
+                      onTap: viewModel.canGoPrevious
+                          ? () => viewModel.goToPreviousPage()
+                          : null,
+                      child: Container(
+                        padding: EdgeInsets.all(AppPadding.p8),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: viewModel.canGoPrevious
+                              ? ColorManager.primary
+                              : Colors.grey.shade300,
+                        ),
+                        child: Icon(
+                          Icons.arrow_back,
+                          color: viewModel.canGoPrevious
+                              ? Colors.white
+                              : Colors.grey.shade500,
+                          size: AppSize.s20,
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(width: AppPadding.p20),
+
+                    // Page indicator
+                    Text(
+                      '${viewModel.currentPage + 1} / ${viewModel.totalPages}',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: ColorManager.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    SizedBox(width: AppPadding.p20),
+
+                    // Right arrow
+                    GestureDetector(
+                      onTap: viewModel.canGoNext
+                          ? () => viewModel.goToNextPage()
+                          : null,
+                      child: Container(
+                        padding: EdgeInsets.all(AppPadding.p8),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: viewModel.canGoNext
+                              ? ColorManager.primary
+                              : Colors.grey.shade300,
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward,
+                          color: viewModel.canGoNext
+                              ? Colors.white
+                              : Colors.grey.shade500,
+                          size: AppSize.s20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            SizedBox(height: AppPadding.p20),
+
+            // Progress indicators
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(AppCount.c4, (index) {
-                int totalWords = viewModel.matchedWords.length;
-                int matchedCount = viewModel.matchedWords
-                    .where((w) => w != null)
-                    .length;
-                double progressRatio = totalWords == AppSize.s0
-                    ? AppSize.s0
-                    : matchedCount / totalWords;
-                int dotsToFill = (progressRatio * AppCount.c4).floor();
-                bool isCompleted = index < dotsToFill;
-                bool isCurrent = index == dotsToFill;
-                if (viewModel.isAllMatched) {
-                  isCompleted = true;
-                  isCurrent = false;
-                }
+              children: List.generate(viewModel.totalPages, (index) {
+                bool isCompleted = viewModel.isAllMatched;
+                bool isCurrent = index == viewModel.currentPage;
+                bool isPageCompleted =
+                    index < viewModel.currentPage ||
+                    (index == viewModel.currentPage &&
+                        viewModel.isCurrentPageComplete);
                 return Container(
                   margin: EdgeInsets.symmetric(horizontal: AppPadding.p4),
                   width: isCompleted ? AppSize.s24 : AppSize.s24,
                   height: isCompleted ? AppSize.s24 : AppSize.s24,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isCompleted
+                    color: isPageCompleted
                         ? ColorManager.green
                         : Colors.transparent,
                     border: Border.all(
-                      color: isCompleted
+                      color: isPageCompleted
                           ? ColorManager.green
                           : (isCurrent
                                 ? Colors.grey.shade300
@@ -247,7 +312,7 @@ class _BodyState extends State<_Body> {
                     ),
                   ),
                   alignment: Alignment.center,
-                  child: isCompleted
+                  child: isPageCompleted
                       ? Icon(
                           Icons.check,
                           color: Colors.white,
@@ -268,7 +333,7 @@ class _BodyState extends State<_Body> {
             ),
             SizedBox(height: AppPadding.p40),
             SizedBox(
-              height: context.height * AppRatio.r0_5,
+              height: context.height * AppRatio.r0_3,
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
                 child: Container(
@@ -293,14 +358,16 @@ class _BodyState extends State<_Body> {
                                     runSpacing: AppPadding.p8,
                                     alignment: WrapAlignment.center,
                                     children: List.generate(
-                                      viewModel.matchedWords.length,
+                                      viewModel.currentPageMatchedWords.length,
                                       (index) {
                                         int displayIndex =
-                                            viewModel.matchedWords.length -
+                                            viewModel
+                                                .currentPageMatchedWords
+                                                .length -
                                             1 -
                                             index;
                                         String? matchedWord = viewModel
-                                            .matchedWords[displayIndex];
+                                            .currentPageMatchedWords[displayIndex];
                                         bool isError =
                                             viewModel.failedIndex ==
                                             displayIndex;
@@ -434,13 +501,25 @@ class _BodyState extends State<_Body> {
                             children: [
                               GestureDetector(
                                 onTap: () => viewModel.toggleAudio(),
-                                child: Icon(
-                                  viewModel.isPlaying
-                                      ? Icons.pause_circle_filled
-                                      : Icons.play_circle_fill,
-                                  color: Colors.white,
-                                  size: AppSize.s28,
-                                ),
+                                child: viewModel.isAudioLoading
+                                    ? SizedBox(
+                                        width: AppSize.s28,
+                                        height: AppSize.s28,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.0,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      )
+                                    : Icon(
+                                        viewModel.isPlaying
+                                            ? Icons.pause_circle_filled
+                                            : Icons.play_circle_fill,
+                                        color: Colors.white,
+                                        size: AppSize.s28,
+                                      ),
                               ),
                               SizedBox(width: AppPadding.p12),
                               Expanded(

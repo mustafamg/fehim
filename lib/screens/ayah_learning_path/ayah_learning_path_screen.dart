@@ -284,13 +284,25 @@ class _BodyState extends State<_Body> {
                                           color: Colors.white,
                                           shape: BoxShape.circle,
                                         ),
-                                        child: Icon(
-                                          (isPlaying)
-                                              ? Icons.pause
-                                              : Icons.play_arrow,
-                                          color: topColor,
-                                          size: AppPadding.p16,
-                                        ),
+                                        child: viewModel.isAudioLoading
+                                            ? SizedBox(
+                                                width: AppPadding.p16,
+                                                height: AppPadding.p16,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2.0,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                        Color
+                                                      >(topColor),
+                                                ),
+                                              )
+                                            : Icon(
+                                                (isPlaying)
+                                                    ? Icons.pause
+                                                    : Icons.play_arrow,
+                                                color: topColor,
+                                                size: AppPadding.p16,
+                                              ),
                                       ),
                                     ),
                                   ),
@@ -346,7 +358,7 @@ class _BodyState extends State<_Body> {
                             curve: Curves.easeInOut,
                           );
                         } else {
-                          Navigator.pushReplacement(
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) =>

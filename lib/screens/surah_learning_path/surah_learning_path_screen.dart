@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../values/color_manager.dart';
 import '../../values/font_manager.dart';
 import '../../values/values_manager.dart';
 import '../ayah_learning_path/ayah_learning_path_screen.dart';
 import 'surah_learning_path_view_model.dart';
+
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+
 class SurahLearningPathScreen extends StatelessWidget {
   final Map<String, dynamic> verse;
   const SurahLearningPathScreen({super.key, required this.verse});
@@ -17,12 +20,14 @@ class SurahLearningPathScreen extends StatelessWidget {
     );
   }
 }
+
 class _Body extends StatefulWidget {
   final Map<String, dynamic> verse;
   const _Body({required this.verse});
   @override
   State<_Body> createState() => _BodyState();
 }
+
 class _BodyState extends State<_Body> with RouteAware {
   @override
   void initState() {
@@ -38,6 +43,7 @@ class _BodyState extends State<_Body> with RouteAware {
       );
     });
   }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -46,16 +52,18 @@ class _BodyState extends State<_Body> with RouteAware {
       routeObserver.subscribe(this, route);
     }
   }
+
   @override
   void dispose() {
     routeObserver.unsubscribe(this);
     super.dispose();
   }
+
   @override
   void didPop() {
-    
     context.read<SurahLearningPathViewModel>().resetAudio();
   }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<SurahLearningPathViewModel>(
@@ -65,14 +73,12 @@ class _BodyState extends State<_Body> with RouteAware {
         }
         return Stack(
           children: [
-            
             Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    
                     Wrap(
                       alignment: WrapAlignment.center,
                       spacing: AppSize.s8,
@@ -98,10 +104,8 @@ class _BodyState extends State<_Body> with RouteAware {
                             viewModel.arabicWords[index],
                             style: Theme.of(context).textTheme.headlineMedium
                                 ?.copyWith(
-                                  fontFamily:
-                                      'Amiri', 
-                                  fontSize: FontSizeManager
-                                      .s24, 
+                                  fontFamily: 'Amiri',
+                                  fontSize: FontSizeManager.s24,
                                   fontWeight: FontWeight.w700,
                                   color: isHighlighted
                                       ? Colors.white
@@ -112,11 +116,8 @@ class _BodyState extends State<_Body> with RouteAware {
                         );
                       }),
                     ),
-                    SizedBox(
-                      height: AppSize
-                          .s8, 
-                    ),
-                    
+                    SizedBox(height: AppSize.s8),
+
                     Wrap(
                       alignment: WrapAlignment.center,
                       spacing: AppSize.s4,
@@ -124,8 +125,6 @@ class _BodyState extends State<_Body> with RouteAware {
                       children: List.generate(viewModel.englishWords.length, (
                         index,
                       ) {
-                        
-                        
                         final isHighlighted =
                             index ==
                             viewModel.currentHighlightedTranslationIndex;
@@ -144,7 +143,7 @@ class _BodyState extends State<_Body> with RouteAware {
                             viewModel.englishWords[index],
                             style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
-                                  fontSize: FontSizeManager.s18, 
+                                  fontSize: FontSizeManager.s18,
                                   fontWeight: FontWeight.w400,
                                   color: isHighlighted
                                       ? Colors.white
@@ -158,14 +157,13 @@ class _BodyState extends State<_Body> with RouteAware {
                 ),
               ),
             ),
-            
+
             Positioned(
               left: AppPadding.p20,
               right: AppPadding.p20,
               bottom: AppPadding.p40,
               child: Column(
                 children: [
-                  
                   Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: AppPadding.p16,
@@ -174,13 +172,11 @@ class _BodyState extends State<_Body> with RouteAware {
                     decoration: BoxDecoration(
                       color: viewModel.isPlaying
                           ? ColorManager.secondary
-                          : Colors
-                                .grey, 
+                          : Colors.grey,
                       borderRadius: BorderRadius.circular(AppPadding.p12),
                     ),
                     child: Row(
                       children: [
-                        
                         GestureDetector(
                           onTap: () {
                             if (viewModel.isPlaying) {
@@ -195,26 +191,35 @@ class _BodyState extends State<_Body> with RouteAware {
                               color: Colors.white,
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(
-                              viewModel.isPlaying
-                                  ? Icons.pause
-                                  : Icons.play_arrow,
-                              color: viewModel.isPlaying
-                                  ? ColorManager.secondary
-                                  : Colors.grey,
-                              size: AppPadding.p20,
-                            ),
+                            child: viewModel.isAudioLoading
+                                ? SizedBox(
+                                    width: AppPadding.p20,
+                                    height: AppPadding.p20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.0,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        ColorManager.secondary,
+                                      ),
+                                    ),
+                                  )
+                                : Icon(
+                                    viewModel.isPlaying
+                                        ? Icons.pause
+                                        : Icons.play_arrow,
+                                    color: viewModel.isPlaying
+                                        ? ColorManager.secondary
+                                        : Colors.grey,
+                                    size: AppPadding.p20,
+                                  ),
                           ),
                         ),
                         SizedBox(width: AppPadding.p16),
-                        
+
                         Expanded(
                           child: SliderTheme(
                             data: SliderTheme.of(context).copyWith(
                               activeTrackColor: Colors.white,
-                              inactiveTrackColor: Colors.white.withAlpha(
-                                76,
-                              ), 
+                              inactiveTrackColor: Colors.white.withAlpha(76),
                               thumbColor: Colors.white,
                               trackHeight: 2.0,
                               thumbShape: RoundSliderThumbShape(
@@ -248,16 +253,13 @@ class _BodyState extends State<_Body> with RouteAware {
                       ],
                     ),
                   ),
-                  SizedBox(
-                    height: AppPadding.p24,
-                  ), 
-                  
+                  SizedBox(height: AppPadding.p24),
+
                   GestureDetector(
                     onTap: viewModel.hasFinishedPlaying
                         ? () {
-                            
                             viewModel.pauseAudio();
-                            
+
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -266,7 +268,7 @@ class _BodyState extends State<_Body> with RouteAware {
                               ),
                             );
                           }
-                        : null, 
+                        : null,
                     child: Container(
                       width: double.infinity,
                       padding: EdgeInsets.symmetric(vertical: AppPadding.p12),

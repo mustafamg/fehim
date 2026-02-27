@@ -10,11 +10,13 @@ import 'package:holy_quran/values/color_manager.dart';
 import 'package:holy_quran/values/font_manager.dart';
 import 'package:holy_quran/values/values_manager.dart';
 import 'package:provider/provider.dart';
+
 class SurahSelectionScreen extends StatefulWidget {
   const SurahSelectionScreen({super.key});
   @override
   State<SurahSelectionScreen> createState() => _SurahSelectionScreenState();
 }
+
 class _SurahSelectionScreenState extends State<SurahSelectionScreen>
     with WidgetsBindingObserver {
   @override
@@ -22,15 +24,16 @@ class _SurahSelectionScreenState extends State<SurahSelectionScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
   }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           final viewModel = Provider.of<SurahSelectionScreenViewModel>(
@@ -42,6 +45,7 @@ class _SurahSelectionScreenState extends State<SurahSelectionScreen>
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -105,11 +109,13 @@ class _SurahSelectionScreenState extends State<SurahSelectionScreen>
     );
   }
 }
+
 class _Body extends StatefulWidget {
   const _Body();
   @override
   State<_Body> createState() => __BodyState();
 }
+
 class __BodyState extends State<_Body> {
   @override
   void initState() {
@@ -122,6 +128,7 @@ class __BodyState extends State<_Body> {
       viewModel.initialize();
     });
   }
+
   List<StepperStepData> _buildStepperSteps(
     SurahSelectionScreenViewModel viewModel,
   ) {
@@ -134,14 +141,15 @@ class __BodyState extends State<_Body> {
         translationText: viewModel.verseTranslation(verse),
         isCompleted: isCompleted,
         isCurrent: isCurrent,
+        verseNumber: verseNumber,
       );
     }).toList();
   }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<SurahSelectionScreenViewModel>(
       builder: (context, viewModel, child) {
-        
         if (viewModel.isLoading) {
           return const Center(
             child: Column(
@@ -154,7 +162,7 @@ class __BodyState extends State<_Body> {
             ),
           );
         }
-        
+
         if (viewModel.error != null) {
           return Center(
             child: Column(
@@ -172,7 +180,7 @@ class __BodyState extends State<_Body> {
             ),
           );
         }
-        
+
         return SingleChildScrollView(
           child: Column(
             children: [
@@ -183,8 +191,6 @@ class __BodyState extends State<_Body> {
               QuranCustomStepper(
                 steps: _buildStepperSteps(viewModel),
                 onContinue: () {
-                  
-                  
                   if (viewModel.currentVerse <= viewModel.totalVerses) {
                     final currentVerseData = viewModel.verses
                         .where(
@@ -198,12 +204,26 @@ class __BodyState extends State<_Body> {
                             SurahLearningPathScreen(verse: currentVerseData),
                       ),
                     ).then((_) {
-                      
                       if (mounted) {
                         viewModel.refresh();
                       }
                     });
                   }
+                },
+                onStepTap: (verseNumber) {
+                  final verseData = viewModel.verses
+                      .where((v) => v['verseNumber'] == verseNumber)
+                      .first;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SurahLearningPathScreen(verse: verseData),
+                    ),
+                  ).then((_) {
+                    if (mounted) {
+                      viewModel.refresh();
+                    }
+                  });
                 },
               ),
             ],
@@ -213,6 +233,7 @@ class __BodyState extends State<_Body> {
     );
   }
 }
+
 String _languageLabel(String code) {
   switch (code.toLowerCase()) {
     case 'en':
@@ -229,6 +250,7 @@ String _languageLabel(String code) {
       return code.toUpperCase();
   }
 }
+
 class _QuranInformation extends StatelessWidget {
   const _QuranInformation();
   @override
@@ -256,6 +278,7 @@ class _QuranInformation extends StatelessWidget {
     );
   }
 }
+
 class _NameOfSurah extends StatelessWidget {
   const _NameOfSurah({required this.viewModel});
   final SurahSelectionScreenViewModel viewModel;
@@ -365,6 +388,7 @@ class _NameOfSurah extends StatelessWidget {
     );
   }
 }
+
 class _SurahInformation extends StatelessWidget {
   const _SurahInformation({required this.viewModel});
   final SurahSelectionScreenViewModel viewModel;
@@ -402,6 +426,7 @@ class _SurahInformation extends StatelessWidget {
     );
   }
 }
+
 class _SurahInfoItem extends StatelessWidget {
   final String title;
   final String subTitle;
@@ -437,6 +462,7 @@ class _SurahInfoItem extends StatelessWidget {
     );
   }
 }
+
 class _LessInfo extends StatelessWidget {
   const _LessInfo();
   @override
@@ -458,6 +484,7 @@ class _LessInfo extends StatelessWidget {
     );
   }
 }
+
 class _SurahProgressBar extends StatelessWidget {
   final double progress;
   final String percentage;
@@ -468,14 +495,13 @@ class _SurahProgressBar extends StatelessWidget {
       builder: (context, constraints) {
         double thumbWidth = WidgetWidth.w52;
         double leftPos = (constraints.maxWidth * progress) - (thumbWidth / 2);
-        
+
         leftPos = leftPos.clamp(0.0, constraints.maxWidth - thumbWidth);
         return SizedBox(
           height: WidgetHeight.h30,
           child: Stack(
             alignment: Alignment.centerLeft,
             children: [
-              
               Container(
                 width: constraints.maxWidth,
                 height: WidgetHeight.h10,
@@ -484,7 +510,7 @@ class _SurahProgressBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(WidgetBorderRadius.b10),
                 ),
               ),
-              
+
               Container(
                 width: constraints.maxWidth * progress,
                 height: WidgetHeight.h10,
@@ -493,7 +519,7 @@ class _SurahProgressBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(WidgetBorderRadius.b10),
                 ),
               ),
-              
+
               Positioned(
                 left: leftPos,
                 child: Container(
@@ -522,6 +548,7 @@ class _SurahProgressBar extends StatelessWidget {
     );
   }
 }
+
 class _MoreInfo extends StatelessWidget {
   const _MoreInfo();
   @override
@@ -543,6 +570,7 @@ class _MoreInfo extends StatelessWidget {
     );
   }
 }
+
 class _Line extends StatelessWidget {
   const _Line();
   @override

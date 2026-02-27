@@ -4,22 +4,32 @@ import 'package:holy_quran/values/assets_manager.dart';
 import 'package:holy_quran/values/color_manager.dart';
 import 'package:holy_quran/values/font_manager.dart';
 import 'package:holy_quran/values/values_manager.dart';
+
 class StepperStepData {
   final String arabicText;
   final String translationText;
   final bool isCompleted;
   final bool isCurrent;
+  final int verseNumber;
   StepperStepData({
     required this.arabicText,
     required this.translationText,
     this.isCompleted = false,
     this.isCurrent = false,
+    required this.verseNumber,
   });
 }
+
 class QuranCustomStepper extends StatelessWidget {
   final List<StepperStepData> steps;
   final VoidCallback? onContinue;
-  const QuranCustomStepper({super.key, required this.steps, this.onContinue});
+  final Function(int)? onStepTap;
+  const QuranCustomStepper({
+    super.key,
+    required this.steps,
+    this.onContinue,
+    this.onStepTap,
+  });
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -33,6 +43,7 @@ class QuranCustomStepper extends StatelessWidget {
       }),
     );
   }
+
   Widget _buildStep(
     BuildContext context,
     StepperStepData step,
@@ -43,71 +54,76 @@ class QuranCustomStepper extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          
           SizedBox(
             width: WidgetWidth.w40,
             child: Column(
               children: [
-                _buildIndicator(step),
+                GestureDetector(
+                  onTap: step.isCompleted
+                      ? () => onStepTap?.call(step.verseNumber)
+                      : null,
+                  child: _buildIndicator(step),
+                ),
                 if (!isLast)
                   Expanded(child: _buildDottedLine(step.isCompleted)),
               ],
             ),
           ),
           SizedBox(width: WidgetWidth.w12),
-          
+
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min, 
-              children: [
-                
-                Text(
-                  step.arabicText,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontSize: FontSizeManager.s18,
-                    fontWeight: FontWeight.w600,
-                    color: step.isCompleted || step.isCurrent
-                        ? ColorManager.textColor2
-                        : ColorManager.subTextColor,
+            child: GestureDetector(
+              onTap: step.isCompleted
+                  ? () => onStepTap?.call(step.verseNumber)
+                  : null,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    step.arabicText,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontSize: FontSizeManager.s18,
+                      fontWeight: FontWeight.w600,
+                      color: step.isCompleted || step.isCurrent
+                          ? ColorManager.textColor2
+                          : ColorManager.subTextColor,
+                    ),
+                    textDirection: TextDirection.rtl,
                   ),
-                  textDirection: TextDirection.rtl,
-                ),
-                SizedBox(height: WidgetHeight.h4),
-                
-                Text(
-                  step.translationText,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontSize: FontSizeManager.s14,
-                    fontWeight: FontWeight.w400,
-                    color: step.isCompleted
-                        ? ColorManager.subTextColor
-                        : (step.isCurrent
-                              ? ColorManager.textColor2
-                              : ColorManager.subTextColor.withValues(
-                                  alpha: 0.5,
-                                )),
+                  SizedBox(height: WidgetHeight.h4),
+
+                  Text(
+                    step.translationText,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontSize: FontSizeManager.s14,
+                      fontWeight: FontWeight.w400,
+                      color: step.isCompleted
+                          ? ColorManager.subTextColor
+                          : (step.isCurrent
+                                ? ColorManager.textColor2
+                                : ColorManager.subTextColor.withValues(
+                                    alpha: 0.5,
+                                  )),
+                    ),
                   ),
-                ),
-                
-                if (step.isCurrent && onContinue != null) ...[
-                  SizedBox(height: WidgetHeight.h16),
-                  _buildContinueButton(context),
-                  SizedBox(
-                    height: WidgetHeight.h24,
-                  ), 
-                ] else ...[
-                  SizedBox(
-                    height: WidgetHeight.h24,
-                  ), 
+
+                  if (step.isCurrent && onContinue != null) ...[
+                    SizedBox(height: WidgetHeight.h16),
+                    _buildContinueButton(context),
+                    SizedBox(height: WidgetHeight.h24),
+                  ] else ...[
+                    SizedBox(height: WidgetHeight.h24),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
+
   Widget _buildIndicator(StepperStepData step) {
     if (step.isCompleted) {
       return Container(
@@ -140,7 +156,6 @@ class QuranCustomStepper extends StatelessWidget {
         ),
       );
     } else {
-      
       return Container(
         width: WidgetWidth.w24,
         height: WidgetHeight.h24,
@@ -152,29 +167,29 @@ class QuranCustomStepper extends StatelessWidget {
       );
     }
   }
+
   Widget _buildDottedLine(bool isCompleted) {
     return SizedBox(
       width: WidgetWidth.w3,
-      height:
-          WidgetHeight.h50, 
+      height: WidgetHeight.h50,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: List.generate(5, (index) {
-          
           return Container(
             width: WidgetWidth.w3,
-            height: WidgetHeight.h6, 
+            height: WidgetHeight.h6,
             decoration: BoxDecoration(
               color: isCompleted
                   ? ColorManager.primary
                   : ColorManager.lineColor,
-              borderRadius: BorderRadius.circular(100), 
+              borderRadius: BorderRadius.circular(100),
             ),
           );
         }),
       ),
     );
   }
+
   Widget _buildContinueButton(BuildContext context) {
     return GestureDetector(
       onTap: onContinue,
@@ -184,7 +199,7 @@ class QuranCustomStepper extends StatelessWidget {
           vertical: WidgetHeight.h10,
         ),
         decoration: BoxDecoration(
-          color: ColorManager.secondary, 
+          color: ColorManager.secondary,
           borderRadius: BorderRadius.circular(WidgetBorderRadius.b24),
         ),
         child: Row(

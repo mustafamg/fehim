@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+
 class AyahLearningPathViewModel extends ChangeNotifier {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final Map<String, dynamic> verse;
@@ -12,6 +14,8 @@ class AyahLearningPathViewModel extends ChangeNotifier {
   bool get isPlaying => _isPlaying;
   bool _hasFinishedPlaying = false;
   bool get hasFinishedPlaying => _hasFinishedPlaying;
+  bool _isAudioLoading = false;
+  bool get isAudioLoading => _isAudioLoading;
   double _audioProgress = 0.0;
   double get audioProgress => _audioProgress;
   final Set<int> _finishedWords = {};
@@ -27,6 +31,7 @@ class AyahLearningPathViewModel extends ChangeNotifier {
       _words = List<Map<String, dynamic>>.from(verse['words']);
     }
   }
+
   void _setupAudioPlayer() {
     _playerStateSubscription = _audioPlayer.onPlayerStateChanged.listen((
       state,
@@ -50,9 +55,11 @@ class AyahLearningPathViewModel extends ChangeNotifier {
       notifyListeners();
     });
   }
+
   bool isWordFinished(int index) {
     return _finishedWords.contains(index);
   }
+
   void setCurrentIndex(int index) {
     if (index == _currentIndex) return;
     _currentIndex = index;
@@ -61,35 +68,50 @@ class AyahLearningPathViewModel extends ChangeNotifier {
     _audioPlayer.stop();
     notifyListeners();
   }
+
   Future<void> pauseCurrentWordAudio() async {
     await _audioPlayer.pause();
   }
+
   Future<void> playCurrentWordAudio() async {
     if (_words.isEmpty) return;
     final currentWord = _words[_currentIndex];
     final audioUrl = currentWord['audioUrl'] as String?;
     if (audioUrl == null) return;
+
+    _isAudioLoading = true;
+    notifyListeners();
+
     try {
       await _audioPlayer.stop();
-    } catch (_) {
-      
-    }
+    } catch (_) {}
     _hasFinishedPlaying = false;
     _finishedWords.remove(_currentIndex);
     _audioProgress = 0.0;
     notifyListeners();
-    await _audioPlayer.play(UrlSource(audioUrl));
+
+    try {
+      await _audioPlayer.play(UrlSource(audioUrl));
+    } catch (e) {
+      // Handle audio loading error
+    } finally {
+      _isAudioLoading = false;
+      notifyListeners();
+    }
   }
+
   void goToNextWord() {
     if (_currentIndex < _words.length - 1) {
       setCurrentIndex(_currentIndex + 1);
     }
   }
+
   void goToPreviousWord() {
     if (_currentIndex > 0) {
       setCurrentIndex(_currentIndex - 1);
     }
   }
+
   @override
   void dispose() {
     _playerStateSubscription?.cancel();

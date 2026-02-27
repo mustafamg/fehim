@@ -101,20 +101,97 @@ class _Body extends StatelessWidget {
             ),
 
             SizedBox(height: AppPadding.p20),
+
+            // Page navigation with arrows and page indicator
+            if (viewModel.totalPages > 1)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Left arrow
+                    GestureDetector(
+                      onTap: viewModel.canGoPrevious
+                          ? () => viewModel.goToPreviousPage()
+                          : null,
+                      child: Container(
+                        padding: EdgeInsets.all(AppPadding.p8),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: viewModel.canGoPrevious
+                              ? ColorManager.primary
+                              : Colors.grey.shade300,
+                        ),
+                        child: Icon(
+                          Icons.arrow_back,
+                          color: viewModel.canGoPrevious
+                              ? Colors.white
+                              : Colors.grey.shade500,
+                          size: AppSize.s20,
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(width: AppPadding.p20),
+
+                    // Page indicator
+                    Text(
+                      '${viewModel.currentPage + 1} / ${viewModel.totalPages}',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: ColorManager.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    SizedBox(width: AppPadding.p20),
+
+                    // Right arrow
+                    GestureDetector(
+                      onTap: viewModel.canGoNext
+                          ? () => viewModel.goToNextPage()
+                          : null,
+                      child: Container(
+                        padding: EdgeInsets.all(AppPadding.p8),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: viewModel.canGoNext
+                              ? ColorManager.primary
+                              : Colors.grey.shade300,
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward,
+                          color: viewModel.canGoNext
+                              ? Colors.white
+                              : Colors.grey.shade500,
+                          size: AppSize.s20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            SizedBox(height: AppPadding.p20),
+
+            // Progress indicators
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(4, (index) {
+              children: List.generate(viewModel.totalPages, (index) {
                 bool isCompleted = viewModel.isAllMatched;
-                bool isCurrent = index == 0;
+                bool isCurrent = index == viewModel.currentPage;
+                bool isPageCompleted =
+                    index < viewModel.currentPage ||
+                    (index == viewModel.currentPage &&
+                        viewModel.isCurrentPageComplete);
                 return Container(
                   margin: EdgeInsets.symmetric(horizontal: AppPadding.p4),
                   width: isCompleted ? AppSize.s20 : AppSize.s24,
                   height: isCompleted ? AppSize.s20 : AppSize.s24,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isCompleted ? Colors.green : Colors.transparent,
+                    color: isPageCompleted ? Colors.green : Colors.transparent,
                     border: Border.all(
-                      color: isCompleted
+                      color: isPageCompleted
                           ? Colors.green
                           : (isCurrent
                                 ? Colors.grey.shade300
@@ -123,7 +200,7 @@ class _Body extends StatelessWidget {
                     ),
                   ),
                   alignment: Alignment.center,
-                  child: isCompleted
+                  child: isPageCompleted
                       ? Icon(
                           Icons.check,
                           color: Colors.white,
@@ -152,12 +229,14 @@ class _Body extends StatelessWidget {
                     Expanded(
                       flex: 3,
                       child: ListView.builder(
-                        itemCount: viewModel.matchedWords.length,
+                        itemCount: viewModel.currentPageMatchedWords.length,
                         itemBuilder: (context, index) {
-                          String englishWord = viewModel.matchedWords.keys
+                          String englishWord = viewModel
+                              .currentPageMatchedWords
+                              .keys
                               .elementAt(index);
                           String? matchedArabicWord =
-                              viewModel.matchedWords[englishWord];
+                              viewModel.currentPageMatchedWords[englishWord];
                           bool isError =
                               viewModel.failedDragTargetEnglishWord ==
                               englishWord;
