@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:holy_quran/screens/components/custom_app_bar.dart';
 import 'package:provider/provider.dart';
 
 import '../../values/color_manager.dart';
@@ -46,65 +47,14 @@ class __BodyState extends State<_Body> {
 
         return Column(
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppPadding.p20,
-                vertical: AppPadding.p16,
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.close,
-                      size: AppSize.s24,
-                      color: Colors.black87,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: AppPadding.p16),
-                      child: Container(
-                        height: AppSize.s8,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(AppSize.s4),
-                        ),
-                        alignment: Alignment.centerLeft,
-                        child: FractionallySizedBox(
-                          widthFactor: viewModel.totalGapsCount == 0
-                              ? 0.0
-                              : viewModel.completedGapsCount /
-                                    viewModel.totalGapsCount,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: ColorManager.primary,
-                              borderRadius: BorderRadius.circular(AppSize.s4),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            CustomAppBar(
+              title: 'Fill the Gaps',
+              subtitle: 'Complete the missing parts',
+              showBackButton: false,
+              showProgress: true,
+              currentStep: viewModel.completedGapsCount,
+              totalSteps: viewModel.totalGapsCount,
             ),
-            SizedBox(height: AppPadding.p16),
-            Text(
-              'Fill the Gaps',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade500),
-            ),
-            SizedBox(height: AppPadding.p4),
-            Text(
-              'Complete the missing parts',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(color: ColorManager.primary),
-            ),
-            SizedBox(height: AppPadding.p20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(4, (index) {

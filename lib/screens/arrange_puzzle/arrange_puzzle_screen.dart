@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:holy_quran/main.dart';
+import 'package:holy_quran/screens/components/custom_app_bar.dart';
 import 'package:holy_quran/services/firestore_service.dart';
 import 'package:holy_quran/values/assets_manager.dart';
 import 'package:provider/provider.dart';
@@ -33,7 +34,9 @@ class _ArrangePuzzleScreenState extends State<ArrangePuzzleScreen> {
       try {
         final homeViewModel = getIt<SurahSelectionScreenViewModel>();
         await homeViewModel.refresh();
-      } catch (e) {}
+      } catch (e) {
+        // Ignore refresh errors
+      }
     });
   }
 
@@ -53,7 +56,9 @@ class _ArrangePuzzleScreenState extends State<ArrangePuzzleScreen> {
           },
         );
         audioUrl = currentVerse['audioUrl'] ?? currentVerse['audio'] ?? '';
-      } catch (e) {}
+      } catch (e) {
+        // Ignore errors
+      }
     }
     return audioUrl;
   }
@@ -150,67 +155,16 @@ class _BodyState extends State<_Body> {
         }
         return Column(
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppPadding.p20,
-                vertical: AppPadding.p16,
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.close,
-                      size: AppSize.s24,
-                      color: Colors.black87,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: AppPadding.p16),
-                      child: Container(
-                        height: AppSize.s8,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(AppSize.s4),
-                        ),
-                        alignment: Alignment.centerLeft,
-                        child: FractionallySizedBox(
-                          widthFactor: viewModel.matchedWords.isEmpty
-                              ? AppSize.s0
-                              : viewModel.matchedWords
-                                        .where((w) => w != null)
-                                        .length /
-                                    viewModel.matchedWords.length,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: ColorManager.primary,
-                              borderRadius: BorderRadius.circular(AppSize.s4),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            CustomAppBar(
+              title: 'Arrange the Puzzle',
+              subtitle: "Let's put the pieces together",
+              showBackButton: false,
+              showProgress: true,
+              currentStep: viewModel.matchedWords
+                  .where((w) => w != null)
+                  .length,
+              totalSteps: viewModel.matchedWords.length,
             ),
-            SizedBox(height: AppPadding.p16),
-            Text(
-              'Arrange the Puzzle',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade500),
-            ),
-            SizedBox(height: AppPadding.p4),
-            Text(
-              "Let's put the pieces together",
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(color: ColorManager.primary),
-            ),
-            SizedBox(height: AppPadding.p20),
 
             // Page navigation with arrows and page indicator
             if (viewModel.totalPages > 1)

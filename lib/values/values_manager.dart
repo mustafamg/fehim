@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 class AppMargin {
   static double m2 = 2.0.r;
   static double m4 = 4.0.r;
@@ -34,6 +35,7 @@ class AppMargin {
   static double m170 = 170.0.r;
   static double m180 = 180.0.r;
 }
+
 class AppPadding {
   static double p2 = 2.0.r;
   static double p4 = 4.0.r;
@@ -63,6 +65,7 @@ class AppPadding {
   static double p100 = 100.0.r;
   static double p120 = 120.0.r;
 }
+
 class AppSize {
   static const double s0 = 0.0;
   static const double s1_5 = 1.5;
@@ -94,12 +97,14 @@ class AppSize {
   static double s1 = 1.0.w;
   static double s2 = 2.0.w;
 }
+
 class AppCount {
   static const int c1 = 1;
   static const int c2 = 2;
   static const int c3 = 3;
   static const int c4 = 4;
 }
+
 class AppRatio {
   static const double r0_3 = 0.3;
   static const double r0_5 = 0.5;
@@ -108,6 +113,7 @@ class AppRatio {
   static const double r0_8 = 0.8;
   static const double r0_15 = 0.15;
 }
+
 class AppOpacity {
   static const double o0_3 = 0.3;
   static const double a0_1 = 0.1;
@@ -115,11 +121,13 @@ class AppOpacity {
   static const double a0_8 = 0.8;
   static const int a20 = 20;
 }
+
 class AppDuration {
   static const int d1 = 1;
   static const int d100 = 100;
   static const int d300 = 300;
 }
+
 class WidgetWidth {
   static double w05 = 0.5.w;
   static double w1 = 1.0.w;
@@ -187,6 +195,7 @@ class WidgetWidth {
   static double w320 = 320.0.w;
   static double w400 = 400.0.w;
 }
+
 class WidgetHeight {
   static double h1 = handleLandscape(1.0.h);
   static double h2 = handleLandscape(2.0.h);
@@ -325,6 +334,7 @@ class WidgetHeight {
   static double h990 = handleLandscape(990.0.h);
   static double h1000 = handleLandscape(1000.0.h);
 }
+
 class WidgetBorderRadius {
   static double b1 = 1.0.r;
   static double b4 = 4.0.r;
@@ -349,7 +359,8 @@ class WidgetBorderRadius {
   static double b80 = 80.0.r;
   static double b100 = 100.0.r;
 }
-dynamic handleLandscape(value) {
+
+dynamic handleLandscape(dynamic value) {
   if (ScreenUtil().orientation == Orientation.portrait) {
     return value;
   }

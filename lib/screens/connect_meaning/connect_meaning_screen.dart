@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:holy_quran/screens/components/custom_app_bar.dart';
 import 'package:provider/provider.dart';
 
 import '../../values/assets_manager.dart';
@@ -38,69 +39,16 @@ class _Body extends StatelessWidget {
       builder: (context, viewModel, child) {
         return Column(
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppPadding.p20,
-                vertical: AppPadding.p16,
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.close,
-                      size: AppSize.s24,
-                      color: Colors.black87,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: AppPadding.p16),
-                      child: Container(
-                        height: AppSize.s8,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(AppSize.s4),
-                        ),
-                        alignment: Alignment.centerLeft,
-                        child: FractionallySizedBox(
-                          widthFactor: viewModel.matchedWords.isEmpty
-                              ? 0.0
-                              : viewModel.matchedWords.values
-                                        .where((v) => v != null)
-                                        .length /
-                                    viewModel.matchedWords.length,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: ColorManager.primary,
-                              borderRadius: BorderRadius.circular(AppSize.s4),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            CustomAppBar(
+              title: 'Connect Meanings',
+              subtitle: 'Link words to their meanings',
+              showBackButton: false,
+              showProgress: true,
+              currentStep: viewModel.matchedWords.values
+                  .where((v) => v != null)
+                  .length,
+              totalSteps: viewModel.matchedWords.length,
             ),
-            SizedBox(height: AppPadding.p16),
-
-            Text(
-              'Connect Meanings',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade500),
-            ),
-            SizedBox(height: AppPadding.p4),
-            Text(
-              'Link words to their meanings',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(color: ColorManager.primary),
-            ),
-
-            SizedBox(height: AppPadding.p20),
 
             // Page navigation with arrows and page indicator
             if (viewModel.totalPages > 1)

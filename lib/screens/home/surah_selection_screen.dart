@@ -49,7 +49,16 @@ class _SurahSelectionScreenState extends State<SurahSelectionScreen>
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => getIt<SurahSelectionScreenViewModel>(),
+      create: (context) {
+        final viewModel = getIt<SurahSelectionScreenViewModel>();
+        // Start loading immediately when creating the ViewModel
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!viewModel.isInitialized) {
+            viewModel.initialize();
+          }
+        });
+        return viewModel;
+      },
       child: Scaffold(
         body: SafeArea(
           child: Padding(

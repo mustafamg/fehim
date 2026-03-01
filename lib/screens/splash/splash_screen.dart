@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:holy_quran/main.dart';
 import 'package:holy_quran/routes/routes_manager.dart';
+import 'package:holy_quran/screens/home/surah_selection_view_model.dart';
 import 'package:holy_quran/values/assets_manager.dart';
 import 'package:holy_quran/values/font_manager.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
   @override
   State<SplashScreen> createState() => _SplashViewBodyState();
 }
+
 class _SplashViewBodyState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController animationController;
@@ -16,6 +20,7 @@ class _SplashViewBodyState extends State<SplashScreen>
     intializeAnimation();
     super.initState();
   }
+
   void intializeAnimation() {
     animationController = AnimationController(
       vsync: this,
@@ -26,20 +31,27 @@ class _SplashViewBodyState extends State<SplashScreen>
       curve: Curves.bounceInOut,
     );
     animationController.forward();
+
+    // Initialize the ViewModel during splash to preload data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final viewModel = getIt<SurahSelectionScreenViewModel>();
+      viewModel.initialize();
+    });
+
     slidungAnimation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         Navigator.pushReplacementNamed(context, RoutesManager.loginRoute);
       }
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          
           Center(child: Image.asset(ImageAssets.logo)),
-          
+
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -59,6 +71,7 @@ class _SplashViewBodyState extends State<SplashScreen>
       ),
     );
   }
+
   @override
   void dispose() {
     animationController.dispose();

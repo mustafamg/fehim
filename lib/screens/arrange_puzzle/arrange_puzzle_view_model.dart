@@ -231,7 +231,9 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
           currentVerse,
         );
       } else {}
-    } catch (e) {}
+    } catch (e) {
+      // Ignore errors
+    }
   }
 
   @override

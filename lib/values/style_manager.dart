@@ -1,42 +1,88 @@
 import 'package:flutter/material.dart';
 import 'package:holy_quran/values/font_manager.dart';
-TextStyle _getTextStyle(double fontSize, String fontFamily,
-    FontWeight fontWeight, Color fontColor) {
+
+TextStyle _getTextStyle(
+  double fontSize,
+  String fontFamily,
+  FontWeight fontWeight,
+  Color fontColor,
+) {
   return TextStyle(
-      fontSize: fontSize,
-      fontFamily: fontFamily,
-      fontWeight: fontWeight,
-      color: fontColor);
+    fontSize: fontSize,
+    fontFamily: fontFamily,
+    fontWeight: fontWeight,
+    color: fontColor,
+  );
 }
+
 TextStyle getThinStyle({double fontSize = 12, color}) {
   return _getTextStyle(
-      fontSize, FontManager.fontFamily, FontWeightManager.thin, color);
+    fontSize,
+    FontManager.fontFamily,
+    FontWeightManager.thin,
+    color,
+  );
 }
+
 TextStyle getExtraLightStyle({double fontSize = 12, color}) {
   return _getTextStyle(
-      fontSize, FontManager.fontFamily, FontWeightManager.extraLight, color);
+    fontSize,
+    FontManager.fontFamily,
+    FontWeightManager.extraLight,
+    color,
+  );
 }
+
 TextStyle getLightStyle({double fontSize = 12, color}) {
   return _getTextStyle(
-      fontSize, FontManager.fontFamily, FontWeightManager.ligth, color);
+    fontSize,
+    FontManager.fontFamily,
+    FontWeightManager.ligth,
+    color,
+  );
 }
+
 TextStyle getReqularStyle({double fontSize = 12, color}) {
   return _getTextStyle(
-      fontSize, FontManager.fontFamily, FontWeightManager.reqular, color);
+    fontSize,
+    FontManager.fontFamily,
+    FontWeightManager.reqular,
+    color,
+  );
 }
+
 TextStyle getMediumStyle({double fontSize = 12, color}) {
   return _getTextStyle(
-      fontSize, FontManager.fontFamily, FontWeightManager.medium, color);
+    fontSize,
+    FontManager.fontFamily,
+    FontWeightManager.medium,
+    color,
+  );
 }
+
 TextStyle getBoldStyle({double fontSize = 12, color}) {
   return _getTextStyle(
-      fontSize, FontManager.fontFamily, FontWeightManager.bold, color);
+    fontSize,
+    FontManager.fontFamily,
+    FontWeightManager.bold,
+    color,
+  );
 }
+
 TextStyle getSemiBoldStyle({double fontSize = 12, color}) {
   return _getTextStyle(
-      fontSize, FontManager.fontFamily, FontWeightManager.semiBold, color);
+    fontSize,
+    FontManager.fontFamily,
+    FontWeightManager.semiBold,
+    color,
+  );
 }
-TextStyle getExtraBoldStyle({fontSize, color}) {
+
+TextStyle getExtraBoldStyle({required double fontSize, required color}) {
   return _getTextStyle(
-      fontSize, FontManager.fontFamily, FontWeightManager.extraBold, color);
+    fontSize,
+    FontManager.fontFamily,
+    FontWeightManager.extraBold,
+    color,
+  );
 }

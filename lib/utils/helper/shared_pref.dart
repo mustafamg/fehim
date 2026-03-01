@@ -1,19 +1,20 @@
 import 'package:shared_preferences/shared_preferences.dart';
+
 class SharedPrefrencesHelper {
   static SharedPreferences? sharedPreferences;
-  static setUpShared() async {
+  static Future<void> setUpShared() async {
     sharedPreferences = await SharedPreferences.getInstance();
   }
-  
-  static Future<bool> saveString({key, value}) async {
+
+  static Future<bool> saveString({required String key, required String value}) async {
     return await sharedPreferences!.setString(key, value);
   }
-  
-  static String? getString({key}) {
+
+  static String? getString({required String key}) {
     return sharedPreferences!.getString(key);
   }
-  
-  static Future<bool> remove({key}) {
+
+  static Future<bool> remove({required String key}) {
     return sharedPreferences!.remove(key);
   }
 }

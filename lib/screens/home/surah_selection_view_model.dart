@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:holy_quran/services/firestore_service.dart';
 import 'package:injectable/injectable.dart';
+
 @Injectable()
 class SurahSelectionScreenViewModel extends ChangeNotifier {
   final FirestoreService _firestoreService = FirestoreService();
-  final String _userId = 'test_user_1'; 
+  final String _userId = 'test_user_1';
   bool _isShowMore = false;
-  bool _isLoading = false;
+  bool _isLoading = true;
   bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
   String? _error;
   String _surahId = 'al_falaq';
   String _languageCode = 'en';
-  
+
   String _surahName = '';
   String _arabicName = '';
   int _totalVerses = 0;
@@ -26,7 +28,7 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _verses = [];
   List<Map<String, dynamic>> _availableSurahs = [];
   List<String> _availableLanguages = [];
-  
+
   bool get isShowMore => _isShowMore;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -46,7 +48,7 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
   String get selectedSurahId => _surahId;
   String get languageCode => _languageCode;
   List<String> get availableLanguages => _availableLanguages;
-  
+
   double get progressPercentage =>
       _totalVerses == 0 ? 0 : _completedVerses / _totalVerses;
   String get progressText => '${(progressPercentage * 100).toInt()}%';
@@ -54,6 +56,7 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
     _isShowMore = !_isShowMore;
     notifyListeners();
   }
+
   Future<void> initialize({
     String? defaultSurahId,
     String languageCode = 'en',
@@ -72,18 +75,22 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
     await _loadSurahData();
     _isInitialized = true;
   }
+
   Future<void> selectSurah(String surahId) async {
     if (surahId == _surahId) return;
     await _loadSurahData(surahId: surahId);
   }
+
   Future<void> selectLanguage(String languageCode) async {
     if (_languageCode == languageCode) return;
     _languageCode = languageCode;
     await _loadSurahData();
   }
+
   Future<void> refresh() async {
     await _loadSurahData();
   }
+
   Future<void> completeVerse() async {
     if (_completedVerses >= _totalVerses) {
       return;
@@ -107,6 +114,7 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
       _setLoading(false);
     }
   }
+
   Future<void> resetProgress() async {
     try {
       _setLoading(true);
@@ -118,6 +126,7 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
       _setLoading(false);
     }
   }
+
   Future<void> _loadSurahData({String? surahId}) async {
     try {
       _setLoading(true);
@@ -181,17 +190,20 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
       _setLoading(false);
     }
   }
+
   List<String> _extractLanguageKeys(dynamic value) {
     if (value is Map) {
       return value.keys.map((e) => e.toString()).toList()..sort();
     }
     return [];
   }
+
   String verseTranslation(Map<String, dynamic> verse) {
     final translations = verse['translations'];
     final fallback = _languageCode == 'en' ? 'ar' : 'en';
     return _resolveLocaleValue(translations, _languageCode, fallback);
   }
+
   String _resolveLocaleValue(
     dynamic value,
     String preferred,
@@ -206,14 +218,17 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
     }
     return value?.toString() ?? defaultValue;
   }
+
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
   }
+
   void _setError(String error) {
     _error = error;
     notifyListeners();
   }
+
   void _clearError() {
     _error = null;
   }

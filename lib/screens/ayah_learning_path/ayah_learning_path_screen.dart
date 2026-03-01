@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:holy_quran/screens/components/custom_app_bar.dart';
 import 'package:provider/provider.dart';
 
 import '../../values/color_manager.dart';
@@ -9,6 +10,7 @@ import 'ayah_learning_path_view_model.dart';
 class AyahLearningPathScreen extends StatelessWidget {
   final Map<String, dynamic> verse;
   const AyahLearningPathScreen({super.key, required this.verse});
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -24,12 +26,14 @@ class AyahLearningPathScreen extends StatelessWidget {
 class _Body extends StatefulWidget {
   final Map<String, dynamic> verse;
   const _Body({required this.verse});
+
   @override
   State<_Body> createState() => _BodyState();
 }
 
 class _BodyState extends State<_Body> {
   late PageController _pageController;
+
   @override
   void initState() {
     super.initState();
@@ -54,74 +58,21 @@ class _BodyState extends State<_Body> {
     return Consumer<AyahLearningPathViewModel>(
       builder: (context, viewModel, child) {
         if (viewModel.words.isEmpty) {
-          return Center(child: Text('No word data available for this verse.'));
+          return const Center(
+            child: Text('No word data available for this verse.'),
+          );
         }
+
         return Column(
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppPadding.p20,
-                vertical: AppPadding.p16,
-              ),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Icon(
-                      Icons.close,
-                      size: AppPadding.p24,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(width: AppPadding.p16),
-                  Expanded(
-                    child: Container(
-                      height: AppSize.s8,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: FractionallySizedBox(
-                        alignment: Alignment.centerLeft,
-                        widthFactor:
-                            (viewModel.currentIndex + 1) /
-                            viewModel.words.length,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: ColorManager.primary,
-                            borderRadius: BorderRadius.circular(AppSize.s4),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            CustomAppBar(
+              title: 'Discover the Words',
+              subtitle: "Let's explore each word",
+              showBackButton: false,
+              showProgress: true,
+              currentStep: viewModel.currentIndex,
+              totalSteps: viewModel.words.length,
             ),
-            SizedBox(height: AppPadding.p32),
-
-            Center(
-              child: Column(
-                children: [
-                  Text(
-                    'Discover the Words',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                  SizedBox(height: AppPadding.p4),
-                  Text(
-                    "Let's explore each word",
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: ColorManager.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: AppPadding.p24),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(viewModel.words.length, (index) {
@@ -179,7 +130,6 @@ class _BodyState extends State<_Body> {
               }),
             ),
             SizedBox(height: AppPadding.p40),
-
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -199,6 +149,7 @@ class _BodyState extends State<_Body> {
                   final topColor = (isPlayed || (isCurrent && isPlaying))
                       ? Colors.green
                       : Colors.blueGrey.shade600;
+
                   return AnimatedBuilder(
                     animation: _pageController,
                     builder: (context, child) {
@@ -206,19 +157,21 @@ class _BodyState extends State<_Body> {
                           .toDouble();
                       if (_pageController.hasClients &&
                           _pageController.position.haveDimensions) {
-                        value = _pageController.page! - index;
+                        final page = _pageController.page;
+                        if (page != null) value = page - index;
                       }
 
-                      double rotationZ = value * AppRatio.r0_15;
-
-                      double translateY = value.abs() * AppSize.s30;
-
-                      double scale = (1 - (value.abs() * AppRatio.r0_15)).clamp(
+                      final rotationZ = value * AppRatio.r0_15;
+                      final translateY = value.abs() * AppSize.s30;
+                      final scale = (1 - (value.abs() * AppRatio.r0_15)).clamp(
                         AppRatio.r0_8,
                         1.0,
                       );
-                      double opacity = (1 - (value.abs() * AppRatio.r0_5))
-                          .clamp(0.0, 1.0);
+                      final opacity = (1 - (value.abs() * AppRatio.r0_5)).clamp(
+                        0.0,
+                        1.0,
+                      );
+
                       return Center(
                         child: Transform(
                           transform: Matrix4.identity()
@@ -258,29 +211,29 @@ class _BodyState extends State<_Body> {
                         children: [
                           Expanded(
                             flex: AppCount.c3,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: topColor,
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(AppPadding.p16),
+                            child: GestureDetector(
+                              onTap: () {
+                                if (isPlaying) {
+                                  viewModel.pauseCurrentWordAudio();
+                                } else if (isCurrent) {
+                                  viewModel.playCurrentWordAudio();
+                                }
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: topColor,
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(AppPadding.p16),
+                                  ),
                                 ),
-                              ),
-                              child: Stack(
-                                children: [
-                                  Positioned(
-                                    top: AppPadding.p16,
-                                    left: AppPadding.p16,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        if (isPlaying) {
-                                          viewModel.pauseCurrentWordAudio();
-                                        } else if (isCurrent) {
-                                          viewModel.playCurrentWordAudio();
-                                        }
-                                      },
+                                child: Stack(
+                                  children: [
+                                    Positioned(
+                                      top: AppPadding.p16,
+                                      left: AppPadding.p16,
                                       child: Container(
                                         padding: EdgeInsets.all(AppPadding.p4),
-                                        decoration: BoxDecoration(
+                                        decoration: const BoxDecoration(
                                           color: Colors.white,
                                           shape: BoxShape.circle,
                                         ),
@@ -297,7 +250,7 @@ class _BodyState extends State<_Body> {
                                                 ),
                                               )
                                             : Icon(
-                                                (isPlaying)
+                                                isPlaying
                                                     ? Icons.pause
                                                     : Icons.play_arrow,
                                                 color: topColor,
@@ -305,28 +258,26 @@ class _BodyState extends State<_Body> {
                                               ),
                                       ),
                                     ),
-                                  ),
-
-                                  Center(
-                                    child: Text(
-                                      word['arabic'] ?? '',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .headlineMedium
-                                          ?.copyWith(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontFamily: 'Uthmanic',
-                                            fontSize: AppSize.s32,
-                                          ),
-                                      textAlign: TextAlign.center,
+                                    Center(
+                                      child: Text(
+                                        word['arabic'] ?? '',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headlineMedium
+                                            ?.copyWith(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Uthmanic',
+                                              fontSize: AppSize.s32,
+                                            ),
+                                        textAlign: TextAlign.center,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-
                           Expanded(
                             flex: AppCount.c2,
                             child: Center(
@@ -345,7 +296,6 @@ class _BodyState extends State<_Body> {
                 },
               ),
             ),
-
             Padding(
               padding: EdgeInsets.all(AppPadding.p20),
               child: GestureDetector(

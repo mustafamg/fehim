@@ -3,41 +3,53 @@ class Validator {
   static bool isValidPassword(String password) {
     return password.isNotEmpty;
   }
+
   static bool isValidEmail(String? email) {
-    const emailRegExpString = r'[a-zA-Z0-9\+\.\_\%\-\+]{1,256}\@[a-zA-Z0-9]'
+    const emailRegExpString =
+        r'[a-zA-Z0-9\+\.\_\%\-\+]{1,256}\@[a-zA-Z0-9]'
         r'[a-zA-Z0-9\-]{0,64}(\.[a-zA-Z0-9][a-zA-Z0-9\-]{0,25})+';
     return RegExp(emailRegExpString, caseSensitive: false).hasMatch(email!);
   }
+
   static bool isValidPhone(String? phone) {
     if (phone == null || phone.trim().isEmpty) return false;
     const pattern = r'^[3567]\d{7}$';
     return RegExp(pattern).hasMatch(phone.trim());
   }
+
   static bool isValidUserName(String? userName) {
     return userName!.length >= 3;
   }
+
   static bool isPasswordValid(String? password) {
     if (!RegExp(r'^(?=.*?[0-9]).{8,}$').hasMatch(password!)) {
       return false;
     }
     return true;
   }
-  static isValidCode(String? code) {
+
+  static bool isValidCode(String? code) {
     return code!.length >= 4;
   }
+
   static bool isMatchPassword(String password, String matchPassword) {
     return password == matchPassword;
   }
+
   static bool isNotEmpty(String? text) {
     return text.toString().isNotEmpty;
   }
-  static String? textEmptyDropDownValidation(
-      {required value, required String errorMsg}) {
+
+  static String? textEmptyDropDownValidation({
+    required dynamic value,
+    required String errorMsg,
+  }) {
     if (value == null) {
       return errorMsg;
     }
     return null;
   }
+
   static bool isValidLocation(String? location) {
     if (location == null || location.trim().isEmpty) return false;
     final value = location.trim();

@@ -50,32 +50,26 @@ class QuranCustomStepper extends StatelessWidget {
     int index,
     bool isLast,
   ) {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: WidgetWidth.w40,
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: step.isCompleted
-                      ? () => onStepTap?.call(step.verseNumber)
-                      : null,
-                  child: _buildIndicator(step),
-                ),
-                if (!isLast)
-                  Expanded(child: _buildDottedLine(step.isCompleted)),
-              ],
+    return GestureDetector(
+      onTap: step.isCompleted ? () => onStepTap?.call(step.verseNumber) : null,
+      behavior: HitTestBehavior.opaque,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: WidgetWidth.w40,
+              child: Column(
+                children: [
+                  _buildIndicator(step),
+                  if (!isLast)
+                    Expanded(child: _buildDottedLine(step.isCompleted)),
+                ],
+              ),
             ),
-          ),
-          SizedBox(width: WidgetWidth.w12),
+            SizedBox(width: WidgetWidth.w12),
 
-          Expanded(
-            child: GestureDetector(
-              onTap: step.isCompleted
-                  ? () => onStepTap?.call(step.verseNumber)
-                  : null,
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -118,8 +112,8 @@ class QuranCustomStepper extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
