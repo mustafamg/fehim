@@ -65,7 +65,9 @@ class CustomAppBar extends StatelessWidget {
                     ),
                     child: FractionallySizedBox(
                       alignment: Alignment.centerLeft,
-                      widthFactor: (currentStep + 1) / totalSteps,
+                      widthFactor: totalSteps > 0
+                          ? ((currentStep + 1) / totalSteps).clamp(0.0, 1.0)
+                          : 0.0,
                       child: Container(
                         decoration: BoxDecoration(
                           color: ColorManager.primary,
