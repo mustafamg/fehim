@@ -4,6 +4,7 @@ import 'package:holy_quran/generated/l10n.dart';
 import 'package:holy_quran/screens/components/custom_app_bar.dart';
 import 'package:holy_quran/utils/helper/shared_pref.dart';
 import 'package:provider/provider.dart';
+// ignore: depend_on_referenced_packages
 import 'package:vector_math/vector_math_64.dart' as vector;
 
 import '../../main.dart';
