@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:get/get_utils/src/extensions/context_extensions.dart';
+import 'package:get/get.dart';
+import 'package:holy_quran/generated/l10n.dart';
 import 'package:holy_quran/main.dart';
+import 'package:holy_quran/routes/routes_manager.dart';
+import 'package:holy_quran/screens/components/reset_progress_dialog.dart';
 import 'package:holy_quran/screens/home/components/stepper/quran_custom_stepper.dart';
 import 'package:holy_quran/screens/home/surah_selection_view_model.dart';
 import 'package:holy_quran/screens/surah_learning_path/surah_learning_path_screen.dart';
+import 'package:holy_quran/utils/helper/shared_pref.dart';
 import 'package:holy_quran/values/assets_manager.dart';
 import 'package:holy_quran/values/color_manager.dart';
 import 'package:holy_quran/values/font_manager.dart';
@@ -18,7 +23,7 @@ class SurahSelectionScreen extends StatefulWidget {
 }
 
 class _SurahSelectionScreenState extends State<SurahSelectionScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RouteAware {
   @override
   void initState() {
     super.initState();
@@ -26,9 +31,36 @@ class _SurahSelectionScreenState extends State<SurahSelectionScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    routeObserver.unsubscribe(this);
     super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // Called when the top route has been popped off, and the current route shows up.
+    // e.g., Returning from learning path screens.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        try {
+          final viewModel = Provider.of<SurahSelectionScreenViewModel>(
+            context,
+            listen: false,
+          );
+          viewModel.refresh();
+        } catch (_) {}
+      }
+    });
   }
 
   @override
@@ -36,11 +68,15 @@ class _SurahSelectionScreenState extends State<SurahSelectionScreen>
     if (state == AppLifecycleState.resumed) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          final viewModel = Provider.of<SurahSelectionScreenViewModel>(
-            context,
-            listen: false,
-          );
-          viewModel.refresh();
+          try {
+            final viewModel = Provider.of<SurahSelectionScreenViewModel>(
+              context,
+              listen: false,
+            );
+            viewModel.refresh();
+          } catch (_) {
+            // Provider might not be available in this context yet
+          }
         }
       });
     }
@@ -59,58 +95,82 @@ class _SurahSelectionScreenState extends State<SurahSelectionScreen>
         });
         return viewModel;
       },
-      child: Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: WidgetWidth.w16),
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 56,
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: WidgetWidth.w40,
-                        height: WidgetHeight.h40,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: ColorManager.iconBackgroundColors,
-                            borderRadius: BorderRadius.circular(
-                              WidgetBorderRadius.b12,
-                            ),
-                          ),
-                          child: Center(
-                            child: SvgPicture.asset(
-                              SvgAssets.arrowLeft,
-                              width: WidgetWidth.w10,
-                              height: WidgetHeight.h10,
+      child: Builder(
+        builder: (context) => Scaffold(
+          floatingActionButton: FloatingActionButton(
+            onPressed: () async {
+              final shouldReset = await showDialog<bool>(
+                context: context,
+                builder: (_) => const ResetProgressDialog(),
+              );
+
+              if (shouldReset == true && context.mounted) {
+                final viewModel = context.read<SurahSelectionScreenViewModel>();
+                await viewModel.resetProgress();
+              }
+            },
+            child: const Icon(Icons.refresh, color: Colors.white),
+          ),
+          body: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: WidgetWidth.w16),
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 56.h,
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              RoutesManager.profileRoute,
+                            );
+                          },
+                          child: SizedBox(
+                            width: WidgetWidth.w40,
+                            height: WidgetHeight.h40,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: ColorManager.iconBackgroundColors,
+                                borderRadius: BorderRadius.circular(
+                                  WidgetBorderRadius.b12,
+                                ),
+                              ),
+                              child: Center(
+                                child: SvgPicture.asset(
+                                  SvgAssets.userCircle,
+                                  width: WidgetWidth.w30,
+                                  height: WidgetHeight.h30,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const Spacer(),
-                      Consumer<SurahSelectionScreenViewModel>(
-                        builder: (context, viewModel, child) {
-                          return Text(
-                            viewModel.surahName.isNotEmpty
-                                ? viewModel.surahName
-                                : 'Surah',
-                            style: Theme.of(context).textTheme.titleLarge!
-                                .copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: FontSizeManager.s14,
-                                ),
-                          );
-                        },
-                      ),
-                      const Spacer(),
-                      SizedBox(width: WidgetWidth.w40),
-                    ],
+                        const Spacer(),
+                        Consumer<SurahSelectionScreenViewModel>(
+                          builder: (context, viewModel, child) {
+                            return Text(
+                              viewModel.surahName.isNotEmpty
+                                  ? viewModel.surahName
+                                  : S.current.surahSelectionDefaultName,
+                              style: Theme.of(context).textTheme.titleLarge!
+                                  .copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: FontSizeManager.s14,
+                                  ),
+                            );
+                          },
+                        ),
+                        const Spacer(),
+                        SizedBox(width: WidgetWidth.w40),
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(height: WidgetHeight.h20),
-                const Expanded(child: _Body()),
-              ],
+                  SizedBox(height: WidgetHeight.h20),
+                  const Expanded(child: _Body()),
+                ],
+              ),
             ),
           ),
         ),
@@ -160,13 +220,13 @@ class __BodyState extends State<_Body> {
     return Consumer<SurahSelectionScreenViewModel>(
       builder: (context, viewModel, child) {
         if (viewModel.isLoading) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Loading Quran data...'),
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(S.current.surahSelectionLoadingMessage),
               ],
             ),
           );
@@ -177,13 +237,13 @@ class __BodyState extends State<_Body> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error, color: Colors.red, size: 64),
-                SizedBox(height: 16),
-                Text('Error: ${viewModel.error}'),
-                SizedBox(height: 16),
+                const Icon(Icons.error, color: Colors.red, size: 64),
+                const SizedBox(height: 16),
+                Text(S.current.commonErrorWithMessage(viewModel.error!)),
+                const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: viewModel.refresh,
-                  child: Text('Retry'),
+                  child: Text(S.current.surahSelectionRetryButton),
                 ),
               ],
             ),
@@ -201,11 +261,14 @@ class __BodyState extends State<_Body> {
                 steps: _buildStepperSteps(viewModel),
                 onContinue: () {
                   if (viewModel.currentVerse <= viewModel.totalVerses) {
-                    final currentVerseData = viewModel.verses
-                        .where(
-                          (v) => v['verseNumber'] == viewModel.currentVerse,
-                        )
-                        .first;
+                    final currentVerseData = Map<String, dynamic>.from(
+                      viewModel.verses
+                          .where(
+                            (v) => v['verseNumber'] == viewModel.currentVerse,
+                          )
+                          .first,
+                    );
+                    currentVerseData['surahId'] = viewModel.selectedSurahId;
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -220,9 +283,12 @@ class __BodyState extends State<_Body> {
                   }
                 },
                 onStepTap: (verseNumber) {
-                  final verseData = viewModel.verses
-                      .where((v) => v['verseNumber'] == verseNumber)
-                      .first;
+                  final verseData = Map<String, dynamic>.from(
+                    viewModel.verses
+                        .where((v) => v['verseNumber'] == verseNumber)
+                        .first,
+                  );
+                  verseData['surahId'] = viewModel.selectedSurahId;
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -316,7 +382,7 @@ class _NameOfSurah extends StatelessWidget {
                   color: ColorManager.textColor,
                 ),
                 hint: Text(
-                  'Select surah',
+                  S.current.surahSelectionSelectSurahHint,
                   style: Theme.of(context).textTheme.titleLarge!.copyWith(
                     fontSize: FontSizeManager.s14,
                     fontWeight: FontWeight.w600,
@@ -330,7 +396,7 @@ class _NameOfSurah extends StatelessWidget {
                         child: Text(
                           (surah['names']?['en'] ??
                                   surah['names']?['ar'] ??
-                                  'Surah')
+                                  S.current.surahSelectionDefaultName)
                               .toString(),
                         ),
                       ),
@@ -360,7 +426,7 @@ class _NameOfSurah extends StatelessWidget {
                   color: ColorManager.textColor,
                 ),
                 hint: Text(
-                  'Language',
+                  S.current.surahSelectionLanguageHint,
                   style: Theme.of(context).textTheme.titleLarge!.copyWith(
                     fontSize: FontSizeManager.s14,
                     fontWeight: FontWeight.w600,
@@ -378,6 +444,16 @@ class _NameOfSurah extends StatelessWidget {
                 onChanged: (value) {
                   if (value != null) {
                     viewModel.selectLanguage(value);
+                    final isSupportedLocale = S.delegate.supportedLocales.any(
+                      (locale) => locale.languageCode == value,
+                    );
+                    if (isSupportedLocale) {
+                      Get.updateLocale(Locale(value));
+                      SharedPrefrencesHelper.saveString(
+                        key: SharedPrefrencesHelper.languageCodeKey,
+                        value: value,
+                      );
+                    }
                   }
                 },
               ),
@@ -386,7 +462,7 @@ class _NameOfSurah extends StatelessWidget {
         ),
         SizedBox(height: WidgetHeight.h8),
         Text(
-          'Juz\' ${viewModel.juzNumber} - Surah Number ${viewModel.surahNumber} - Verses ${viewModel.totalVerses}',
+          "Juz' ${viewModel.juzNumber} - Surah Number ${viewModel.surahNumber} - Verses ${viewModel.totalVerses}",
           style: Theme.of(context).textTheme.titleLarge!.copyWith(
             fontSize: FontSizeManager.s12,
             fontWeight: FontWeight.w500,
@@ -417,13 +493,13 @@ class _SurahInformation extends StatelessWidget {
           title: 'Position',
           subTitle: viewModel.position.isNotEmpty
               ? viewModel.position
-              : '20th from the end of the Qur\'an',
+              : "20th from the end of the Qur'an",
         ),
         _SurahInfoItem(
           title: 'Other Name',
           subTitle: viewModel.otherName.isNotEmpty
               ? viewModel.otherName
-              : 'Al-Mu\'awwidhatayn',
+              : "Al-Mu'awwidhatayn",
         ),
         _SurahInfoItem(
           title: 'Brief context',
@@ -481,7 +557,7 @@ class _LessInfo extends StatelessWidget {
         return GestureDetector(
           onTap: () => viewModel.toggleShowMore(),
           child: Text(
-            "Less Information",
+            S.current.surahSelectionLessInfo,
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
               fontWeight: FontWeight.w400,
               fontSize: FontSizeManager.s12,
@@ -567,7 +643,7 @@ class _MoreInfo extends StatelessWidget {
         return GestureDetector(
           onTap: () => viewModel.toggleShowMore(),
           child: Text(
-            "More Information",
+            S.current.surahSelectionMoreInfo,
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
               fontWeight: FontWeight.w400,
               fontSize: FontSizeManager.s12,

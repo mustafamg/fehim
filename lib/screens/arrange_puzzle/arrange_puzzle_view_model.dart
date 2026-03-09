@@ -2,6 +2,10 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:holy_quran/main.dart';
+import 'package:holy_quran/services/audio_cache_service.dart';
+import 'package:holy_quran/utils/helper/shared_pref.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../services/firestore_service.dart';
@@ -9,15 +13,45 @@ import '../../services/firestore_service.dart';
 @Injectable()
 class ArrangePuzzleViewModel extends ChangeNotifier {
   final AudioPlayer _audioPlayer = AudioPlayer();
-  final FirestoreService _firestoreService = FirestoreService();
+  final FirestoreService _firestoreService;
+  final AudioCacheService _audioCacheService = getIt<AudioCacheService>();
+
+  String? _errorWord;
+  String? get errorWord => _errorWord;
+  int _errorTick = 0;
+  int get errorTick => _errorTick;
+
+  ArrangePuzzleViewModel(this._firestoreService) {
+    _playerStateSubscription = _audioPlayer.onPlayerStateChanged.listen((
+      state,
+    ) {
+      _isPlaying = state == PlayerState.playing;
+      notifyListeners();
+    });
+    _positionSubscription = _audioPlayer.onPositionChanged.listen((position) {
+      _currentPosition = position;
+      notifyListeners();
+    });
+    _durationSubscription = _audioPlayer.onDurationChanged.listen((duration) {
+      _totalDuration = duration;
+      notifyListeners();
+    });
+    _playerCompleteSubscription = _audioPlayer.onPlayerComplete.listen((event) {
+      _isPlaying = false;
+      _currentPosition = Duration.zero;
+      notifyListeners();
+    });
+  }
 
   StreamSubscription<PlayerState>? _playerStateSubscription;
   StreamSubscription<Duration>? _positionSubscription;
   StreamSubscription<Duration>? _durationSubscription;
   StreamSubscription<void>? _playerCompleteSubscription;
 
-  String _userId = 'test_user_1';
-  String _surahId = 'al_falaq';
+  String get _userId =>
+      SharedPrefrencesHelper.getString(key: SharedPrefrencesHelper.userIdKey) ??
+      '';
+  String _surahId = '';
   int _verseNumber = 1;
   final List<String> _originalWords = [];
   List<String> _draggableWords = [];
@@ -31,6 +65,8 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
   Duration _totalDuration = Duration.zero;
   bool _isAudioLoading = false;
   bool get isAudioLoading => _isAudioLoading;
+  bool _isFinishLoading = false;
+  bool get isFinishLoading => _isFinishLoading;
 
   int _currentPage = 0;
   int get currentPage => _currentPage;
@@ -86,37 +122,24 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
 
   bool get isAllMatched =>
       _matchedWords.isNotEmpty && !_matchedWords.contains(null);
-  ArrangePuzzleViewModel() {
-    _playerStateSubscription = _audioPlayer.onPlayerStateChanged.listen((
-      state,
-    ) {
-      _isPlaying = state == PlayerState.playing;
-      notifyListeners();
-    });
-    _positionSubscription = _audioPlayer.onPositionChanged.listen((position) {
-      _currentPosition = position;
-      notifyListeners();
-    });
-    _durationSubscription = _audioPlayer.onDurationChanged.listen((duration) {
-      _totalDuration = duration;
-      notifyListeners();
-    });
-    _playerCompleteSubscription = _audioPlayer.onPlayerComplete.listen((event) {
-      _isPlaying = false;
-      _currentPosition = Duration.zero;
-      notifyListeners();
-    });
+
+  int get matchedCount =>
+      _matchedWords.where((element) => element != null).length;
+
+  void setFinishLoading(bool value) {
+    if (_isFinishLoading == value) return;
+    _isFinishLoading = value;
+    notifyListeners();
   }
+
   void init(
     List<Map<String, dynamic>> words,
     String audioUrl, {
-    String? userId,
     String? surahId,
     int? verseNumber,
   }) {
     _audioUrl = audioUrl;
 
-    if (userId != null) _userId = userId;
     if (surahId != null) _surahId = surahId;
     if (verseNumber != null) _verseNumber = verseNumber;
     _originalWords.clear();
@@ -134,7 +157,16 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
     _updateCurrentPageWords();
 
     if (_audioUrl != null && _audioUrl!.isNotEmpty) {
-      _audioPlayer.setSourceUrl(_audioUrl!);
+      _audioCacheService.getCachedAudioPath(_audioUrl!).then((localPath) {
+        if (localPath != null) {
+          _audioPlayer.setSource(DeviceFileSource(localPath));
+        } else {
+          // Audio not cached and cannot download (likely offline)
+          print('Audio not available offline for caching: $_audioUrl');
+          // Still set the URL for potential online playback later
+          _audioPlayer.setSourceUrl(_audioUrl!);
+        }
+      });
     }
     notifyListeners();
   }
@@ -170,7 +202,18 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
         await _audioPlayer.pause();
       } else {
         if (_audioUrl != null && _audioUrl!.isNotEmpty) {
-          await _audioPlayer.play(UrlSource(_audioUrl!));
+          final localPath = await _audioCacheService.getCachedAudioPath(
+            _audioUrl!,
+          );
+          if (localPath != null) {
+            await _audioPlayer.play(DeviceFileSource(localPath));
+          } else {
+            // Audio not cached and cannot download (likely offline)
+            print('Audio not available offline: $_audioUrl');
+            _isAudioLoading = false;
+            notifyListeners();
+            return;
+          }
         }
       }
     } catch (e) {
@@ -195,16 +238,22 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
       _draggableWords.remove(word);
       _failedWord = null;
       _failedIndex = null;
+      _errorWord = null;
       notifyListeners();
     } else {
       _failedWord = word;
       _failedIndex = targetIndex;
+      _errorWord = word;
+      _errorTick++;
+      HapticFeedback.heavyImpact();
+      HapticFeedback.vibrate();
       notifyListeners();
 
       Future.delayed(const Duration(seconds: 1), () {
         if (_failedWord == word && _failedIndex == targetIndex) {
           _failedWord = null;
           _failedIndex = null;
+          _errorWord = null;
           notifyListeners();
         }
       });
@@ -220,17 +269,30 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
       int completedVerses = currentProgress['completedVerses'] as int? ?? 0;
       int currentVerse = currentProgress['currentVerse'] as int? ?? 1;
 
-      if (_verseNumber > completedVerses) {
+      final bool isNewlyCompleted = _verseNumber > completedVerses;
+      if (isNewlyCompleted) {
         completedVerses = _verseNumber;
         currentVerse = _verseNumber + 1;
 
-        await _firestoreService.updateUserProgress(
-          _userId,
-          _surahId,
-          completedVerses,
-          currentVerse,
-        );
-      } else {}
+        try {
+          await _firestoreService.updateUserProgress(
+            _userId,
+            _surahId,
+            completedVerses,
+            currentVerse,
+          );
+          await _firestoreService.incrementUserPoints(_userId, _surahId);
+        } catch (e) {
+          // Fallback to local cache update only if offline
+          _firestoreService.updateUserProgressLocal(
+            _userId,
+            _surahId,
+            completedVerses,
+            currentVerse,
+          );
+          await _firestoreService.incrementUserPoints(_userId, _surahId);
+        }
+      }
     } catch (e) {
       // Ignore errors
     }

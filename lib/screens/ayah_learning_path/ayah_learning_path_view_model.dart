@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:holy_quran/services/audio_cache_service.dart';
 
 class AyahLearningPathViewModel extends ChangeNotifier {
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final AudioCacheService _audioCacheService;
   final Map<String, dynamic> verse;
   List<Map<String, dynamic>> _words = [];
   List<Map<String, dynamic>> get words => _words;
@@ -22,7 +24,7 @@ class AyahLearningPathViewModel extends ChangeNotifier {
   StreamSubscription<PlayerState>? _playerStateSubscription;
   StreamSubscription<Duration>? _positionSubscription;
   StreamSubscription<void>? _playerCompleteSubscription;
-  AyahLearningPathViewModel(this.verse) {
+  AyahLearningPathViewModel(this.verse, this._audioCacheService) {
     _initWords();
     _setupAudioPlayer();
   }
@@ -91,8 +93,18 @@ class AyahLearningPathViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _audioPlayer.play(UrlSource(audioUrl));
+      final localPath = await _audioCacheService.getCachedAudioPath(audioUrl);
+      if (localPath != null) {
+        await _audioPlayer.play(DeviceFileSource(localPath));
+      } else {
+        // Audio not cached and cannot download (likely offline)
+        print('Audio not available offline: $audioUrl');
+        _isAudioLoading = false;
+        notifyListeners();
+        return;
+      }
     } catch (e) {
+      print('Audio playback error: $e');
       // Handle audio loading error
     } finally {
       _isAudioLoading = false;

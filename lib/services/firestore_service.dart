@@ -1,7 +1,82 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:injectable/injectable.dart';
 
+class _CacheEntry<T> {
+  final T data;
+  final DateTime expiresAt;
+
+  _CacheEntry(this.data, Duration ttl) : expiresAt = DateTime.now().add(ttl);
+
+  bool get isValid => DateTime.now().isBefore(expiresAt);
+}
+
+@singleton
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final Duration _defaultCacheDuration = const Duration(minutes: 10);
+  final Map<String, _CacheEntry<Map<String, dynamic>>> _surahCache = {};
+  final Map<String, _CacheEntry<List<Map<String, dynamic>>>> _surahListCache =
+      {};
+  final Map<String, _CacheEntry<Map<String, dynamic>>> _userProgressCache = {};
+  final Map<String, _CacheEntry<Map<String, dynamic>>> _userProfileCache = {};
+  void Function(FirestoreRequestTrace trace)? onRequest;
+
+  bool _hasValidProgressIdentity(String userId, String surahId) {
+    return userId.trim().isNotEmpty && surahId.trim().isNotEmpty;
+  }
+
+  Map<String, dynamic> _defaultProgressData(String userId, String surahId) {
+    return {
+      'userId': userId,
+      'surahId': surahId,
+      'completedVerses': 0,
+      'currentVerse': 1,
+      'points': 0,
+    };
+  }
+
+  void clearCache() {
+    _surahCache.clear();
+    _surahListCache.clear();
+    _userProgressCache.clear();
+    _userProfileCache.clear();
+  }
+
+  Future<void> saveUserProfile({
+    required String userId,
+    required String name,
+    required String email,
+    String? photoUrl,
+  }) async {
+    await _db.collection('users').doc(userId).set({
+      'name': name,
+      'email': email,
+      'photoUrl': photoUrl,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+    _userProfileCache[userId] = _CacheEntry({
+      'name': name,
+      'email': email,
+      'photoUrl': photoUrl,
+    }, _defaultCacheDuration);
+  }
+
+  Future<Map<String, dynamic>?> getUserProfile(String userId) async {
+    final cached = _userProfileCache[userId];
+    if (cached?.isValid == true) {
+      return cached!.data;
+    }
+    final doc = await _db.collection('users').doc(userId).get();
+    if (!doc.exists) return null;
+    final data = doc.data();
+    if (data != null) {
+      _userProfileCache[userId] = _CacheEntry(
+        Map<String, dynamic>.from(data),
+        _defaultCacheDuration,
+      );
+    }
+    return data;
+  }
 
   // Generic method to add or update a Surah with multi-language support
   Future<void> _addOrUpdateSurah({
@@ -51,17 +126,48 @@ class FirestoreService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchAllSurahs() async {
+  Future<List<Map<String, dynamic>>> fetchAllSurahs({
+    bool forceRefresh = false,
+  }) async {
+    const cacheKey = 'all_surahs';
+    if (!forceRefresh &&
+        _surahListCache[cacheKey]?.isValid == true &&
+        _surahListCache[cacheKey]?.data != null) {
+      _emitTrace(
+        FirestoreRequestTrace(
+          operation: 'fetchAllSurahs',
+          cacheHit: true,
+          source: 'cache',
+        ),
+      );
+      return _surahListCache[cacheKey]!.data;
+    }
+
+    final trace = FirestoreRequestTrace(
+      operation: 'fetchAllSurahs',
+      cacheHit: false,
+      source: 'server',
+    );
+    final stopwatch = Stopwatch()..start();
     final snapshot = await _db.collection('surahs').get();
-    return snapshot.docs.map((doc) {
+    stopwatch.stop();
+    trace.duration = stopwatch.elapsed;
+    _emitTrace(trace);
+    final surahs = snapshot.docs.map((doc) {
       final data = doc.data();
       data['id'] = doc.id;
       return Map<String, dynamic>.from(data);
     }).toList();
+
+    _surahListCache[cacheKey] = _CacheEntry(surahs, _defaultCacheDuration);
+    return surahs;
   }
 
   // Initialize User Progress
   Future<void> initUserProgress(String userId, String surahId) async {
+    if (!_hasValidProgressIdentity(userId, surahId)) {
+      return;
+    }
     final progressRef = _db
         .collection('user_progress')
         .doc('${userId}_$surahId');
@@ -73,13 +179,38 @@ class FirestoreService {
         'surahId': surahId,
         'completedVerses': 0,
         'currentVerse': 1,
+        'points': 0,
         'updatedAt': FieldValue.serverTimestamp(),
       });
     }
   }
 
   // Get Surah Data including verses
-  Future<Map<String, dynamic>> getSurahData(String surahId) async {
+  Future<Map<String, dynamic>> getSurahData(
+    String surahId, {
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh &&
+        _surahCache[surahId]?.isValid == true &&
+        _surahCache[surahId]?.data != null) {
+      _emitTrace(
+        FirestoreRequestTrace(
+          operation: 'getSurahData',
+          identifier: surahId,
+          cacheHit: true,
+          source: 'cache',
+        ),
+      );
+      return _surahCache[surahId]!.data;
+    }
+
+    final trace = FirestoreRequestTrace(
+      operation: 'getSurahData',
+      identifier: surahId,
+      cacheHit: false,
+      source: 'server',
+    );
+    final stopwatch = Stopwatch()..start();
     final surahRef = _db.collection('surahs').doc(surahId);
     final surahDoc = await surahRef.get();
 
@@ -89,49 +220,208 @@ class FirestoreService {
         .get();
     final verses = versesSnapshot.docs.map((doc) => doc.data()).toList();
 
-    return {'surah': surahDoc.data(), 'verses': verses};
+    stopwatch.stop();
+    trace.duration = stopwatch.elapsed;
+    _emitTrace(trace);
+    final surahData = {'surah': surahDoc.data(), 'verses': verses};
+    _surahCache[surahId] = _CacheEntry(surahData, _defaultCacheDuration);
+    return surahData;
   }
 
   // Get User Progress
   Future<Map<String, dynamic>> getUserProgress(
     String userId,
-    String surahId,
-  ) async {
-    final progressRef = _db
-        .collection('user_progress')
-        .doc('${userId}_$surahId');
+    String surahId, {
+    bool forceRefresh = false,
+  }) async {
+    if (!_hasValidProgressIdentity(userId, surahId)) {
+      return _defaultProgressData(userId, surahId);
+    }
+    final cacheKey = '${userId}_$surahId';
+    if (!forceRefresh &&
+        _userProgressCache[cacheKey]?.isValid == true &&
+        _userProgressCache[cacheKey]?.data != null) {
+      _emitTrace(
+        FirestoreRequestTrace(
+          operation: 'getUserProgress',
+          identifier: cacheKey,
+          cacheHit: true,
+          source: 'cache',
+        ),
+      );
+      return _userProgressCache[cacheKey]!.data;
+    }
+
+    final trace = FirestoreRequestTrace(
+      operation: 'getUserProgress',
+      identifier: cacheKey,
+      cacheHit: false,
+      source: 'server',
+    );
+    final stopwatch = Stopwatch()..start();
+    final progressRef = _db.collection('user_progress').doc(cacheKey);
     final snapshot = await progressRef.get();
-    return snapshot.data() ?? {};
+    stopwatch.stop();
+    trace.duration = stopwatch.elapsed;
+    _emitTrace(trace);
+    final data = snapshot.data() ?? {};
+    _userProgressCache[cacheKey] = _CacheEntry(data, _defaultCacheDuration);
+    return data;
   }
 
-  // Update User Progress
   Future<void> updateUserProgress(
     String userId,
     String surahId,
     int completedVerses,
-    int currentVerse,
-  ) async {
+    int currentVerse, {
+    int? points,
+  }) async {
+    if (!_hasValidProgressIdentity(userId, surahId)) {
+      return;
+    }
+    updateUserProgressLocal(
+      userId,
+      surahId,
+      completedVerses,
+      currentVerse,
+      points: points,
+    );
     final progressRef = _db
         .collection('user_progress')
         .doc('${userId}_$surahId');
-    await progressRef.update({
+
+    final updateData = <String, dynamic>{
       'completedVerses': completedVerses,
       'currentVerse': currentVerse,
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    };
+    if (points != null) {
+      updateData['points'] = points;
+    }
+
+    progressRef.update(updateData).catchError((_) {});
+  }
+
+  void updateUserProgressLocal(
+    String userId,
+    String surahId,
+    int completedVerses,
+    int currentVerse, {
+    int? points,
+  }) {
+    if (!_hasValidProgressIdentity(userId, surahId)) {
+      return;
+    }
+    final cacheKey = '${userId}_$surahId';
+    final existingData = _userProgressCache[cacheKey]?.data ?? {};
+    final updatedPoints = points ?? existingData['points'] ?? 0;
+
+    _userProgressCache[cacheKey] = _CacheEntry({
+      ...existingData,
+      'userId': userId,
+      'surahId': surahId,
+      'completedVerses': completedVerses,
+      'currentVerse': currentVerse,
+      'points': updatedPoints,
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, _defaultCacheDuration);
+  }
+
+  Future<void> incrementUserPoints(String userId, String surahId) async {
+    if (!_hasValidProgressIdentity(userId, surahId)) {
+      return;
+    }
+    final cacheKey = '${userId}_$surahId';
+    final existingData = _userProgressCache[cacheKey]?.data ?? {};
+    int currentPoints = existingData['points'] as int? ?? 0;
+
+    updateUserProgressLocal(
+      userId,
+      surahId,
+      existingData['completedVerses'] as int? ?? 0,
+      existingData['currentVerse'] as int? ?? 1,
+      points: currentPoints + 1,
+    );
+
+    final progressRef = _db
+        .collection('user_progress')
+        .doc('${userId}_$surahId');
+    progressRef
+        .update({
+          'points': FieldValue.increment(1),
+          'updatedAt': FieldValue.serverTimestamp(),
+        })
+        .catchError((_) {});
   }
 
   // Clear User Progress (For testing)
   Future<void> clearUserProgress(String userId, String surahId) async {
+    if (!_hasValidProgressIdentity(userId, surahId)) {
+      return;
+    }
+    final cacheKey = '${userId}_$surahId';
+    int existingPoints = 0;
+    final cachedData = _userProgressCache[cacheKey]?.data;
+    if (cachedData != null) {
+      existingPoints = cachedData['points'] as int? ?? 0;
+    } else {
+      final snapshot = await _db
+          .collection('user_progress')
+          .doc(cacheKey)
+          .get();
+      if (snapshot.exists) {
+        final data = snapshot.data();
+        if (data != null) {
+          existingPoints = data['points'] as int? ?? 0;
+        }
+      }
+    }
+
+    updateUserProgressLocal(userId, surahId, 0, 1, points: existingPoints);
     final progressRef = _db
         .collection('user_progress')
         .doc('${userId}_$surahId');
-    await progressRef.update({
-      'completedVerses': 0,
-      'currentVerse': 1,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    progressRef
+        .update({
+          'completedVerses': 0,
+          'currentVerse': 1,
+          'updatedAt': FieldValue.serverTimestamp(),
+        })
+        .catchError((_) {});
   }
+
+  void _emitTrace(FirestoreRequestTrace trace) {
+    if (onRequest != null) {
+      onRequest!(trace);
+      return;
+    }
+
+    final buffer = StringBuffer('[Firestore] ${trace.operation}');
+    if (trace.identifier != null) {
+      buffer.write(' (${trace.identifier})');
+    }
+    buffer.write(' ${trace.source.toUpperCase()}');
+    if (trace.duration != null) {
+      buffer.write(' ${trace.duration!.inMilliseconds}ms');
+    }
+    print(buffer.toString());
+  }
+}
+
+class FirestoreRequestTrace {
+  final String operation;
+  final String? identifier;
+  final bool cacheHit;
+  final String source;
+  Duration? duration;
+
+  FirestoreRequestTrace({
+    required this.operation,
+    this.identifier,
+    required this.cacheHit,
+    required this.source,
+    this.duration,
+  });
 }
 
 class _SampleSurah {

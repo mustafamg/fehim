@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:holy_quran/generated/l10n.dart';
 import 'package:holy_quran/values/assets_manager.dart';
 import 'package:holy_quran/values/color_manager.dart';
 import 'package:holy_quran/values/font_manager.dart';
@@ -206,7 +207,7 @@ class QuranCustomStepper extends StatelessWidget {
             ),
             SizedBox(width: WidgetWidth.w4),
             Text(
-              "Continue",
+              S.current.commonContinue,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.white,
                 fontSize: FontSizeManager.s14,

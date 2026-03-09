@@ -4,11 +4,17 @@ const String jsonPath = "assets/json/";
 
 class ImageAssets {
   static const String logo = "${imagePath}logo.png";
+  static const String userImage = "${imagePath}user_image.png";
+  static const String confettiIcon = "${imagePath}confetti.png";
 }
 
 class IconAssets {
   static const String arabicIcon = "${iconPath}ar.svg";
   static const String englishIcon = "${iconPath}en.svg";
+  static const String googleIcon = "${iconPath}google-icon.svg";
+  static const String confettiIcon = "${iconPath}confetti.svg";
+  static const String userCircle = "${iconPath}user-circle.svg";
+  static const String logOut = "${iconPath}logout.svg";
 }
 
 class SvgAssets {
@@ -17,6 +23,7 @@ class SvgAssets {
   static const String quran = "${iconPath}quran.svg";
   static const String rubElHizb = "${iconPath}rub-el-hizb.svg";
   static const String confettiIcon = "${iconPath}confetti.svg";
+  static const String userCircle = "${iconPath}user-circle.svg";
 }
 
 class JsonAssets {}

@@ -1,12 +1,18 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPrefrencesHelper {
+  static const String userIdKey = 'user_id';
+  static const String userNameKey = 'user_name';
+  static const String languageCodeKey = 'language_code';
   static SharedPreferences? sharedPreferences;
   static Future<void> setUpShared() async {
     sharedPreferences = await SharedPreferences.getInstance();
   }
 
-  static Future<bool> saveString({required String key, required String value}) async {
+  static Future<bool> saveString({
+    required String key,
+    required String value,
+  }) async {
     return await sharedPreferences!.setString(key, value);
   }
 

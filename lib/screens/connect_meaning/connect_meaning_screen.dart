@@ -1,5 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:holy_quran/generated/l10n.dart';
 import 'package:holy_quran/screens/components/custom_app_bar.dart';
 import 'package:provider/provider.dart';
 
@@ -30,365 +33,389 @@ class ConnectMeaningScreen extends StatelessWidget {
   }
 }
 
-class _Body extends StatelessWidget {
+class _Body extends StatefulWidget {
   final Map<String, dynamic> verse;
   const _Body({required this.verse});
+
+  @override
+  State<_Body> createState() => _BodyState();
+}
+
+class _BodyState extends State<_Body> with SingleTickerProviderStateMixin {
+  late final AnimationController _shakeController;
+  String? _lastErrorKey;
+  int _lastErrorTick = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _shakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+  }
+
+  @override
+  void dispose() {
+    _shakeController.dispose();
+    super.dispose();
+  }
+
+  void _triggerShake() {
+    _shakeController.forward(from: 0.0);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ConnnectMeaningViewModel>(
       builder: (context, viewModel, child) {
-        return Column(
-          children: [
-            CustomAppBar(
-              title: 'Connect Meanings',
-              subtitle: 'Link words to their meanings',
-              showBackButton: false,
-              showProgress: true,
-              currentStep: viewModel.matchedWords.values
-                  .where((v) => v != null)
-                  .length,
-              totalSteps: viewModel.matchedWords.length,
-            ),
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final currentError = viewModel.failedDragTargetEnglishWord;
+          final tick = viewModel.errorTick;
+          if (currentError != null &&
+              (currentError != _lastErrorKey || tick != _lastErrorTick)) {
+            _lastErrorKey = currentError;
+            _lastErrorTick = tick;
+            _triggerShake();
+          } else if (currentError == null) {
+            _lastErrorKey = null;
+            _lastErrorTick = 0;
+          }
+        });
 
-            // Page navigation with arrows and page indicator
-            if (viewModel.totalPages > 1)
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Left arrow
-                    GestureDetector(
-                      onTap: viewModel.canGoPrevious
-                          ? () => viewModel.goToPreviousPage()
-                          : null,
-                      child: Container(
-                        padding: EdgeInsets.all(AppPadding.p8),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: viewModel.canGoPrevious
-                              ? ColorManager.primary
-                              : Colors.grey.shade300,
-                        ),
-                        child: Icon(
-                          Icons.arrow_back,
-                          color: viewModel.canGoPrevious
-                              ? Colors.white
-                              : Colors.grey.shade500,
-                          size: AppSize.s20,
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(width: AppPadding.p20),
-
-                    // Page indicator
-                    Text(
-                      '${viewModel.currentPage + 1} / ${viewModel.totalPages}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: ColorManager.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    SizedBox(width: AppPadding.p20),
-
-                    // Right arrow
-                    GestureDetector(
-                      onTap: viewModel.canGoNext
-                          ? () => viewModel.goToNextPage()
-                          : null,
-                      child: Container(
-                        padding: EdgeInsets.all(AppPadding.p8),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: viewModel.canGoNext
-                              ? ColorManager.primary
-                              : Colors.grey.shade300,
-                        ),
-                        child: Icon(
-                          Icons.arrow_forward,
-                          color: viewModel.canGoNext
-                              ? Colors.white
-                              : Colors.grey.shade500,
-                          size: AppSize.s20,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+        return AnimatedBuilder(
+          animation: _shakeController,
+          builder: (context, child) {
+            final dx = math.sin(_shakeController.value * math.pi * 6) * 8;
+            return Transform.translate(offset: Offset(dx, 0), child: child);
+          },
+          child: Column(
+            children: [
+              CustomAppBar(
+                title: S.current.connectMeaningTitle,
+                subtitle: S.current.connectMeaningSubtitle,
+                showBackButton: false,
+                showProgress: true,
+                currentStep: viewModel.matchedWords.values
+                    .where((v) => v != null)
+                    .length,
+                totalSteps: viewModel.matchedWords.length,
               ),
-
-            SizedBox(height: AppPadding.p20),
-
-            // Progress indicators
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(viewModel.totalPages, (index) {
-                bool isCompleted = viewModel.isAllMatched;
-                bool isCurrent = index == viewModel.currentPage;
-                bool isPageCompleted =
-                    index < viewModel.currentPage ||
-                    (index == viewModel.currentPage &&
-                        viewModel.isCurrentPageComplete);
-                return Container(
-                  margin: EdgeInsets.symmetric(horizontal: AppPadding.p4),
-                  width: isCompleted ? AppSize.s20 : AppSize.s24,
-                  height: isCompleted ? AppSize.s20 : AppSize.s24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isPageCompleted ? Colors.green : Colors.transparent,
-                    border: Border.all(
-                      color: isPageCompleted
-                          ? Colors.green
-                          : (isCurrent
-                                ? Colors.grey.shade300
-                                : Colors.grey.shade300),
-                      width: 1.5,
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: isPageCompleted
-                      ? Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: AppSize.s14,
-                        )
-                      : (isCurrent
-                            ? Container(
-                                width: AppSize.s12,
-                                height: AppSize.s12,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: ColorManager.primary,
-                                ),
-                              )
-                            : null),
-                );
-              }),
-            ),
-            SizedBox(height: AppPadding.p40),
-
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
-                child: Column(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: ListView.builder(
-                        itemCount: viewModel.currentPageMatchedWords.length,
-                        itemBuilder: (context, index) {
-                          String englishWord = viewModel
-                              .currentPageMatchedWords
-                              .keys
-                              .elementAt(index);
-                          String? matchedArabicWord =
-                              viewModel.currentPageMatchedWords[englishWord];
-                          bool isError =
-                              viewModel.failedDragTargetEnglishWord ==
-                              englishWord;
-                          return Padding(
-                            padding: EdgeInsets.only(bottom: AppPadding.p16),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 1,
-                                  child: Stack(
-                                    children: [
-                                      CustomPaint(
-                                        size: Size(
-                                          double.infinity,
-                                          AppSize.s50,
-                                        ),
-                                        painter: _PuzzlePiecePainter(
-                                          color: matchedArabicWord != null
-                                              ? Colors.green
-                                              : (isError
-                                                    ? Colors.red
-                                                    : Colors.blueGrey.shade500),
-                                          isLeftPiece: true,
-                                        ),
-                                      ),
-                                      Container(
-                                        height: AppSize.s50,
-                                        alignment: Alignment.centerLeft,
-                                        padding: EdgeInsets.only(
-                                          left: AppPadding.p20,
-                                          right: AppPadding.p16,
-                                        ),
-                                        child: Text(
-                                          englishWord,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium
-                                              ?.copyWith(color: Colors.white),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                Expanded(
-                                  flex: 1,
-                                  child: Transform.translate(
-                                    offset: Offset(-AppSize.s12, 0),
-                                    child: DragTarget<String>(
-                                      builder:
-                                          (
-                                            context,
-                                            candidateData,
-                                            rejectedData,
-                                          ) {
-                                            return Stack(
-                                              alignment: Alignment.center,
-                                              children: [
-                                                CustomPaint(
-                                                  size: Size(
-                                                    double.infinity,
-                                                    AppSize.s50,
-                                                  ),
-                                                  painter: _PuzzlePiecePainter(
-                                                    color:
-                                                        matchedArabicWord !=
-                                                            null
-                                                        ? Colors.green
-                                                        : (isError
-                                                              ? Colors.red
-                                                              : Colors
-                                                                    .grey
-                                                                    .shade100),
-                                                    isLeftPiece: false,
-                                                    hasBorder:
-                                                        matchedArabicWord ==
-                                                        null,
-                                                    borderColor:
-                                                        candidateData.isNotEmpty
-                                                        ? ColorManager.primary
-                                                        : Colors.transparent,
-                                                  ),
-                                                ),
-                                                if (matchedArabicWord != null)
-                                                  Padding(
-                                                    padding: EdgeInsets.only(
-                                                      left: AppSize.s16,
-                                                    ),
-                                                    child: Text(
-                                                      matchedArabicWord,
-                                                      style: Theme.of(context)
-                                                          .textTheme
-                                                          .titleLarge
-                                                          ?.copyWith(
-                                                            color: Colors.white,
-                                                            fontFamily:
-                                                                'Uthmanic',
-                                                          ),
-                                                    ),
-                                                  ),
-                                                if (matchedArabicWord != null)
-                                                  Positioned(
-                                                    left:
-                                                        AppSize.s12 -
-                                                        (AppSize.s24 / 2),
-                                                    child: SvgPicture.asset(
-                                                      SvgAssets.rubElHizb,
-                                                      width: AppSize.s24,
-                                                      height: AppSize.s24,
-                                                      colorFilter:
-                                                          const ColorFilter.mode(
-                                                            Colors.white,
-                                                            BlendMode.srcIn,
-                                                          ),
-                                                    ),
-                                                  ),
-                                              ],
-                                            );
-                                          },
-                                      onWillAcceptWithDetails: (data) =>
-                                          matchedArabicWord == null,
-                                      onAcceptWithDetails: (details) {
-                                        viewModel.onWordDropped(
-                                          details.data,
-                                          englishWord,
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+              SizedBox(height: AppPadding.p8),
+              _ProgressDots(viewModel: viewModel),
+              SizedBox(height: AppPadding.p40),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: _MatchedPairsList(viewModel: viewModel),
                       ),
-                    ),
-
-                    Expanded(
-                      flex: 2,
-                      child: Wrap(
-                        spacing: AppPadding.p16,
-                        runSpacing: AppPadding.p16,
-                        alignment: WrapAlignment.center,
-                        children: viewModel.availableDraggableWords.map((
-                          arabicWord,
-                        ) {
-                          return Draggable<String>(
-                            data: arabicWord,
-                            feedback: _ArabicWordWidget(
-                              word: arabicWord,
-                              isDragging: true,
-                            ),
-                            childWhenDragging: Opacity(
-                              opacity: 0.3,
-                              child: _ArabicWordWidget(word: arabicWord),
-                            ),
-                            child: _ArabicWordWidget(word: arabicWord),
-                          );
-                        }).toList(),
+                      Expanded(
+                        flex: 2,
+                        child: _AvailableWordsWrap(viewModel: viewModel),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            Padding(
-              padding: EdgeInsets.all(AppPadding.p20),
-              child: GestureDetector(
-                onTap: viewModel.isAllMatched
-                    ? () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => FillGapsScreen(verse: verse),
-                          ),
-                        );
-                      }
-                    : null,
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: AppPadding.p16),
-                  decoration: BoxDecoration(
-                    color: viewModel.isAllMatched
-                        ? ColorManager.primary
-                        : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(AppPadding.p12),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Next',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: viewModel.isAllMatched
-                          ? Colors.white
-                          : Colors.grey.shade500,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+              Padding(
+                padding: EdgeInsets.all(AppPadding.p20),
+                child: Builder(
+                  builder: (context) {
+                    final canFinish = viewModel.isAllMatched;
+                    final canAdvancePage =
+                        viewModel.isCurrentPageComplete && viewModel.canGoNext;
+                    final label = S.current.commonNext;
+                    final enabled = canFinish ? true : canAdvancePage;
+                    final VoidCallback? action = canFinish
+                        ? () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    FillGapsScreen(verse: widget.verse),
+                              ),
+                            );
+                          }
+                        : (enabled ? viewModel.goToNextPage : null);
+
+                    return _ConnectPrimaryButton(
+                      label: label,
+                      enabled: enabled,
+                      onPressed: action,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         );
       },
+    );
+  }
+}
+
+class _ProgressDots extends StatelessWidget {
+  final ConnnectMeaningViewModel viewModel;
+  const _ProgressDots({required this.viewModel});
+
+  @override
+  Widget build(BuildContext context) {
+    final currentPageMatches = viewModel.currentPageMatchedWords.entries
+        .toList();
+    final activeIndex = currentPageMatches.indexWhere(
+      (entry) => entry.value == null,
+    );
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(currentPageMatches.length, (index) {
+        final isCompleted = currentPageMatches[index].value != null;
+        final isCurrent =
+            !isCompleted && (activeIndex == -1 ? false : index == activeIndex);
+        final isFullyCompleted = viewModel.isCurrentPageComplete;
+        return Container(
+          margin: EdgeInsets.symmetric(horizontal: AppPadding.p4),
+          width: isFullyCompleted ? AppSize.s20 : AppSize.s24,
+          height: isFullyCompleted ? AppSize.s20 : AppSize.s24,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isCompleted ? Colors.green : Colors.transparent,
+            border: Border.all(
+              color: isCompleted
+                  ? Colors.green
+                  : (isCurrent ? Colors.grey.shade300 : Colors.grey.shade300),
+              width: AppSize.s1,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: isCompleted
+              ? Icon(Icons.check, color: Colors.white, size: AppSize.s14)
+              : (isCurrent
+                    ? Container(
+                        width: AppSize.s12,
+                        height: AppSize.s12,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: ColorManager.primary,
+                        ),
+                      )
+                    : null),
+        );
+      }),
+    );
+  }
+}
+
+class _MatchedPairsList extends StatelessWidget {
+  final ConnnectMeaningViewModel viewModel;
+  const _MatchedPairsList({required this.viewModel});
+
+  @override
+  Widget build(BuildContext context) {
+    final matchedWords = viewModel.currentPageMatchedWords;
+    return ListView.separated(
+      itemCount: matchedWords.length,
+      separatorBuilder: (_, __) => SizedBox(height: AppPadding.p4),
+      itemBuilder: (context, index) {
+        final englishWord = matchedWords.keys.elementAt(index);
+        final matchedArabicWord = matchedWords[englishWord];
+        final isError = viewModel.failedDragTargetEnglishWord == englishWord;
+        return _MatchedRow(
+          englishWord: englishWord,
+          matchedArabicWord: matchedArabicWord,
+          isError: isError,
+          viewModel: viewModel,
+        );
+      },
+    );
+  }
+}
+
+class _MatchedRow extends StatelessWidget {
+  final String englishWord;
+  final String? matchedArabicWord;
+  final bool isError;
+  final ConnnectMeaningViewModel viewModel;
+
+  const _MatchedRow({
+    required this.englishWord,
+    required this.matchedArabicWord,
+    required this.isError,
+    required this.viewModel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Stack(
+            children: [
+              CustomPaint(
+                size: Size(double.infinity, AppSize.s50),
+                painter: _PuzzlePiecePainter(
+                  color: matchedArabicWord != null
+                      ? Colors.green
+                      : (isError ? Colors.red : Colors.blueGrey.shade500),
+                  isLeftPiece: true,
+                ),
+              ),
+              Container(
+                height: AppSize.s50,
+                alignment: Alignment.centerLeft,
+                padding: EdgeInsets.symmetric(horizontal: AppPadding.p16),
+                child: Text(
+                  englishWord,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Transform.translate(
+            offset: Offset(-AppSize.s12, 0),
+            child: DragTarget<String>(
+              builder: (context, candidateData, rejectedData) {
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CustomPaint(
+                      size: Size(double.infinity, AppSize.s50),
+                      painter: _PuzzlePiecePainter(
+                        color: matchedArabicWord != null
+                            ? Colors.green
+                            : (isError ? Colors.red : Colors.grey.shade100),
+                        isLeftPiece: false,
+                        hasBorder: matchedArabicWord == null,
+                        borderColor: candidateData.isNotEmpty
+                            ? ColorManager.primary
+                            : Colors.transparent,
+                      ),
+                    ),
+                    if (matchedArabicWord != null)
+                      Padding(
+                        padding: EdgeInsets.only(left: AppPadding.p16),
+                        child: Text(
+                          matchedArabicWord!,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontFamily: 'Uthmanic',
+                              ),
+                        ),
+                      )
+                    else if (isError &&
+                        viewModel.failedDragTargetArabicWord != null)
+                      Padding(
+                        padding: EdgeInsets.only(left: AppPadding.p16),
+                        child: Text(
+                          viewModel.failedDragTargetArabicWord!,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontFamily: 'Uthmanic',
+                              ),
+                        ),
+                      ),
+                    if (matchedArabicWord != null)
+                      Positioned(
+                        left: AppSize.s12 - (AppSize.s24 / 2),
+                        child: SvgPicture.asset(
+                          SvgAssets.rubElHizb,
+                          width: AppSize.s24,
+                          height: AppSize.s24,
+                          colorFilter: const ColorFilter.mode(
+                            Colors.white,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                      )
+                    else if (isError &&
+                        viewModel.failedDragTargetArabicWord != null)
+                      Positioned(
+                        left: AppSize.s12 - (AppSize.s24 / 2),
+                        child: Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: AppSize.s20,
+                        ),
+                      ),
+                  ],
+                );
+              },
+              onWillAcceptWithDetails: (_) => matchedArabicWord == null,
+              onAcceptWithDetails: (details) {
+                viewModel.onWordDropped(details.data, englishWord);
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AvailableWordsWrap extends StatelessWidget {
+  final ConnnectMeaningViewModel viewModel;
+  const _AvailableWordsWrap({required this.viewModel});
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: AppPadding.p40,
+      runSpacing: AppPadding.p20,
+      alignment: WrapAlignment.center,
+      children: viewModel.availableDraggableWords.map((word) {
+        return Draggable<String>(
+          data: word,
+          feedback: _ArabicWordWidget(word: word, isDragging: true),
+          childWhenDragging: Opacity(
+            opacity: 0.3,
+            child: _ArabicWordWidget(word: word),
+          ),
+          child: _ArabicWordWidget(word: word),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _ConnectPrimaryButton extends StatelessWidget {
+  final String label;
+  final bool enabled;
+  final VoidCallback? onPressed;
+  const _ConnectPrimaryButton({
+    required this.label,
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onPressed : null,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: AppPadding.p16),
+        decoration: BoxDecoration(
+          color: enabled ? ColorManager.primary : Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(AppPadding.p12),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: enabled ? Colors.white : Colors.grey.shade500,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:injectable/injectable.dart';
 
 class WordPair {
@@ -19,6 +20,10 @@ class ConnnectMeaningViewModel extends ChangeNotifier {
 
   String? _failedDragTargetEnglishWord;
   String? get failedDragTargetEnglishWord => _failedDragTargetEnglishWord;
+  String? _failedDragTargetArabicWord;
+  String? get failedDragTargetArabicWord => _failedDragTargetArabicWord;
+  int _errorTick = 0;
+  int get errorTick => _errorTick;
 
   int _currentPage = 0;
   int get currentPage => _currentPage;
@@ -123,15 +128,21 @@ class ConnnectMeaningViewModel extends ChangeNotifier {
       _matchedWords[englishTargetWord] = arabicWord;
       _availableDraggableWords.remove(arabicWord);
       _failedDragTargetEnglishWord = null;
+      _failedDragTargetArabicWord = null;
       notifyListeners();
       return true;
     } else {
       _failedDragTargetEnglishWord = englishTargetWord;
+      _failedDragTargetArabicWord = arabicWord;
+      _errorTick++;
+      HapticFeedback.heavyImpact();
+      HapticFeedback.vibrate();
       notifyListeners();
 
       Future.delayed(const Duration(seconds: 1), () {
         if (_failedDragTargetEnglishWord == englishTargetWord) {
           _failedDragTargetEnglishWord = null;
+          _failedDragTargetArabicWord = null;
           notifyListeners();
         }
       });

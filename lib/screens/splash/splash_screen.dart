@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:holy_quran/generated/l10n.dart';
 import 'package:holy_quran/main.dart';
 import 'package:holy_quran/routes/routes_manager.dart';
 import 'package:holy_quran/screens/home/surah_selection_view_model.dart';
+import 'package:holy_quran/utils/helper/shared_pref.dart';
 import 'package:holy_quran/values/assets_manager.dart';
 import 'package:holy_quran/values/font_manager.dart';
 
@@ -15,6 +17,7 @@ class _SplashViewBodyState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController animationController;
   late Animation<double> slidungAnimation;
+  bool _hasNavigated = false;
   @override
   void initState() {
     intializeAnimation();
@@ -40,9 +43,21 @@ class _SplashViewBodyState extends State<SplashScreen>
 
     slidungAnimation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        Navigator.pushReplacementNamed(context, RoutesManager.loginRoute);
+        _navigateNext();
       }
     });
+  }
+
+  void _navigateNext() {
+    if (_hasNavigated || !mounted) return;
+    _hasNavigated = true;
+    final storedUserId = SharedPrefrencesHelper.getString(
+      key: SharedPrefrencesHelper.userIdKey,
+    );
+    final nextRoute = (storedUserId != null && storedUserId.isNotEmpty)
+        ? RoutesManager.homeRoute
+        : RoutesManager.loginRoute;
+    Navigator.pushReplacementNamed(context, nextRoute);
   }
 
   @override
@@ -57,7 +72,7 @@ class _SplashViewBodyState extends State<SplashScreen>
             child: Padding(
               padding: const EdgeInsets.only(bottom: 40),
               child: Text(
-                "Learn Quran the Easy & Fun Way",
+                S.current.splashTagline,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   color: Colors.black,

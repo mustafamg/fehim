@@ -12,7 +12,20 @@
           "package_name": "com.quran.holy_quran"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "432662593937-bc841oidp5gd6q0gouiuh10tsgh60221.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.quran.holy_quran",
+            "certificate_hash": "a78e4952d395b1278aa74bda93da29ed69df56b7"
+          }
+        },
+        {
+          "client_id": "432662593937-bfhjohm4t5goigtsvvmu8hgj0jad5l9e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBf0X-n9rCzUbJoLqCL9uxZnx1xnubZgRk"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "432662593937-bfhjohm4t5goigtsvvmu8hgj0jad5l9e.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "432662593937-evm8h55age04hnna8fku0doh21eks2n7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.quran.holyQuran"
+              }
+            }
+          ]
         }
       }
     }

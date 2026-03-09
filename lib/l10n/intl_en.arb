@@ -1,3 +1,141 @@
 {
-  "submit": "Submit"
+  "submit": "Submit",
+  "audioNotCachedMessage": "Audio not available offline for caching: {audioUrl}",
+  "@audioNotCachedMessage": {
+    "placeholders": {
+      "audioUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "audioNotAvailableMessage": "Audio not available offline: {audioUrl}",
+  "@audioNotAvailableMessage": {
+    "placeholders": {
+      "audioUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "splashTagline": "Learn Quran the Easy & Fun Way",
+  "profileDefaultName": "User",
+  "profileLogoutDialogTitle": "Log out?",
+  "profileLogoutDialogMessage": "Are you sure you want to log out?",
+  "commonCancel": "Cancel",
+  "commonLogout": "Logout",
+  "commonNext": "Next",
+  "commonContinue": "Continue",
+  "commonErrorWithMessage": "Error: {message}",
+  "@commonErrorWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "loginGreeting": "Hello Again!",
+  "loginGoogleButton": "Login with Google",
+  "loginFailedAuth": "Failed to authenticate with Google.",
+  "loginGenericError": "Error during Google sign in: {error}",
+  "@loginGenericError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "loginUnsupportedDeviceMessage": "This device doesn't support Google services required for sign in.",
+  "surahSelectionDefaultName": "Surah",
+  "surahSelectionLoadingMessage": "Loading Quran data...",
+  "surahSelectionRetryButton": "Retry",
+  "surahSelectionSelectSurahHint": "Select surah",
+  "surahSelectionLanguageHint": "Language",
+  "surahSelectionSummary": "Juz' {juzNumber} - Surah Number {surahNumber} - Verses {totalVerses}",
+  "@surahSelectionSummary": {
+    "placeholders": {
+      "juzNumber": {
+        "type": "int"
+      },
+      "surahNumber": {
+        "type": "int"
+      },
+      "totalVerses": {
+        "type": "int"
+      }
+    }
+  },
+  "surahSelectionPlaceTitle": "Place of Revelation",
+  "surahSelectionPlaceFallback": "Mecca (Meccan)",
+  "surahSelectionPositionTitle": "Position",
+  "surahSelectionPositionFallback": "20th from the end of the Qur'an",
+  "surahSelectionOtherNameTitle": "Other Name",
+  "surahSelectionOtherNameFallback": "Al-Mu'awwidhatayn",
+  "surahSelectionBriefContextTitle": "Brief context",
+  "surahSelectionBriefContextFallback": "Brief Context",
+  "surahSelectionLessInfo": "Less Information",
+  "surahSelectionMoreInfo": "More Information",
+  "surahSelectionProgressUpdateFailed": "Failed to update progress: {error}",
+  "@surahSelectionProgressUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "surahSelectionResetFailed": "Failed to reset progress: {error}",
+  "@surahSelectionResetFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "surahSelectionLoadFailed": "Failed to load surah data: {error}",
+  "@surahSelectionLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "languageEnglish": "English",
+  "languageArabic": "Arabic",
+  "languageFrench": "French",
+  "languageUrdu": "Urdu",
+  "languageTurkish": "Turkish",
+  "fillGapsTitle": "Fill the Gaps",
+  "fillGapsSubtitle": "Complete the missing parts",
+  "connectMeaningTitle": "Connect Meanings",
+  "connectMeaningSubtitle": "Link words to their meanings",
+  "ayahLearningTitle": "Discover the Words",
+  "ayahLearningSubtitle": "Let's explore each word",
+  "ayahLearningEmptyMessage": "No word data available for this verse.",
+  "audioPlaybackError": "Audio playback error: {error}",
+  "@audioPlaybackError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "arrangePuzzleTitle": "Arrange the Puzzle",
+  "arrangePuzzleSubtitle": "Let's put the pieces together",
+  "arrangePuzzleMissingData": "Missing puzzle data. Please complete the learning path first.",
+  "arrangePuzzleGoBack": "Go Back",
+  "arrangePuzzleFinish": "Finish",
+  "arrangePuzzleCongratsTitle": "Congratulations",
+  "arrangePuzzleEarnedPrefix": "You've earned ",
+  "arrangePuzzleEarnedHighlight": "{count, plural, one {+{count} verse} other {+{count} verses}}",
+  "@arrangePuzzleEarnedHighlight": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "arrangePuzzleEarnedSuffix": " in your heart.",
+  "arrangePuzzleNextVerse": "Next Verse",
+  "commonHome": "Home",
+  "resetProgressTitle": "Reset Progress",
+  "resetProgressMessage": "This will reset your current progress for this surah. Are you sure?",
+  "resetProgressAction": "Reset"
 }

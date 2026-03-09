@@ -1,3 +1,136 @@
 {
-  "submit": "Submit"
+  "submit": "Submit",
+  "surahLearningNextButton": "التالي",
+  "audioNotCachedMessage": "الصوت غير متاح دون اتصال للتخزين: {audioUrl}",
+  "@audioNotCachedMessage": {
+    "placeholders": {
+      "audioUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "audioNotAvailableMessage": "الصوت غير متاح دون اتصال: {audioUrl}",
+  "@audioNotAvailableMessage": {
+    "placeholders": {
+      "audioUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "splashTagline": "تعلّم القرآن بسهولة ومتعة",
+  "profileDefaultName": "المستخدم",
+  "profileLogoutDialogTitle": "تسجيل الخروج؟",
+  "profileLogoutDialogMessage": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
+  "commonCancel": "إلغاء",
+  "commonLogout": "تسجيل الخروج",
+  "commonNext": "التالي",
+  "commonContinue": "استمرار",
+  "commonErrorWithMessage": "خطأ: {message}",
+  "@commonErrorWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "loginGreeting": "مرحبًا مجددًا!",
+  "loginGoogleButton": "تسجيل الدخول باستخدام جوجل",
+  "loginFailedAuth": "فشل تسجيل الدخول باستخدام جوجل",
+  "loginGenericError": "حدث خطأ أثناء تسجيل الدخول: {error}",
+  "@loginGenericError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "loginUnsupportedDeviceMessage": "هذا الجهاز لا يدعم خدمات Google اللازمة لتسجيل الدخول.",
+  "surahSelectionDefaultName": "سورة",
+  "surahSelectionLoadingMessage": "جارٍ تحميل بيانات القرآن...",
+  "surahSelectionRetryButton": "إعادة المحاولة",
+  "surahSelectionSelectSurahHint": "اختر سورة",
+  "surahSelectionLanguageHint": "اللغة",
+  "surahSelectionSummary": "جزء {juzNumber} - رقم السورة {surahNumber} - عدد الآيات {totalVerses}",
+  "@surahSelectionSummary": {
+    "placeholders": {
+      "juzNumber": {
+        "type": "int"
+      },
+      "surahNumber": {
+        "type": "int"
+      },
+      "totalVerses": {
+        "type": "int"
+      }
+    }
+  },
+  "surahSelectionPlaceTitle": "مكان النزول",
+  "surahSelectionPlaceFallback": "مكة (مكي)",
+  "surahSelectionPositionTitle": "الترتيب",
+  "surahSelectionPositionFallback": "العشرون من نهاية المصحف",
+  "surahSelectionOtherNameTitle": "اسم آخر",
+  "surahSelectionOtherNameFallback": "المعوذتين",
+  "surahSelectionBriefContextTitle": "سياق مختصر",
+  "surahSelectionBriefContextFallback": "سياق مختصر",
+  "surahSelectionLessInfo": "معلومات أقل",
+  "surahSelectionMoreInfo": "مزيد من المعلومات",
+  "surahSelectionProgressUpdateFailed": "فشل تحديث التقدم: {error}",
+  "@surahSelectionProgressUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "surahSelectionResetFailed": "فشل تصفير التقدم: {error}",
+  "@surahSelectionResetFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "surahSelectionLoadFailed": "فشل تحميل بيانات السورة: {error}",
+  "@surahSelectionLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "languageEnglish": "الإنجليزية",
+  "languageArabic": "العربية",
+  "languageFrench": "الفرنسية",
+  "languageUrdu": "الأردية",
+  "languageTurkish": "التركية",
+  "fillGapsTitle": "املأ الفراغات",
+  "fillGapsSubtitle": "أكمل الأجزاء الناقصة",
+  "connectMeaningTitle": "وصل المعاني",
+  "connectMeaningSubtitle": "اربط الكلمات بمعانيها",
+  "ayahLearningTitle": "اكتشف الكلمات",
+  "ayahLearningSubtitle": "لنستكشف كل كلمة",
+  "ayahLearningEmptyMessage": "لا توجد بيانات كلمات لهذه الآية.",
+  "audioPlaybackError": "خطأ في تشغيل الصوت: {error}",
+  "@audioPlaybackError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "arrangePuzzleTitle": "رتب الأحجية",
+  "arrangePuzzleSubtitle": "لنضع القطع معًا",
+  "arrangePuzzleMissingData": "بيانات الأحجية غير متوفرة. يرجى إكمال مسار التعلم أولاً.",
+  "arrangePuzzleGoBack": "عودة",
+  "arrangePuzzleFinish": "إنهاء",
+  "arrangePuzzleCongratsTitle": "تهانينا",
+  "arrangePuzzleEarnedPrefix": "لقد حصدت ",
+  "arrangePuzzleEarnedSuffix": " في قلبك.",
+  "arrangePuzzleNextVerse": "الآية التالية",
+  "arrangePuzzleVerseSingular": "آية",
+  "arrangePuzzleVersePlural": "آيات",
+  "commonHome": "الرئيسية",
+  "resetProgressTitle": "إعادة تعيين التقدم",
+  "resetProgressMessage": "سيؤدي هذا إلى إعادة تعيين تقدمك الحالي لهذه السورة. هل أنت متأكد؟",
+  "resetProgressAction": "إعادة تعيين"
 }

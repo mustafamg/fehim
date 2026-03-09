@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:holy_quran/generated/l10n.dart';
 import 'package:holy_quran/screens/components/custom_app_bar.dart';
+import 'package:holy_quran/values/spacing_manager.dart';
 import 'package:provider/provider.dart';
 
 import '../../values/color_manager.dart';
+import '../../values/font_manager.dart';
 import '../../values/values_manager.dart';
 import '../arrange_puzzle/arrange_puzzle_screen.dart';
 import 'fill_gaps_view_model.dart';
@@ -48,66 +51,14 @@ class __BodyState extends State<_Body> {
         return Column(
           children: [
             CustomAppBar(
-              title: 'Fill the Gaps',
-              subtitle: 'Complete the missing parts',
+              title: S.current.fillGapsTitle,
+              subtitle: S.current.fillGapsSubtitle,
               showBackButton: false,
               showProgress: true,
               currentStep: viewModel.completedGapsCount,
               totalSteps: viewModel.totalGapsCount,
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(4, (index) {
-                int totalGaps = viewModel.totalGapsCount;
-                int completedGaps = viewModel.completedGapsCount;
-                double progressRatio = totalGaps == 0
-                    ? 0.0
-                    : completedGaps / totalGaps;
-                int dotsToFill = (progressRatio * 4).floor();
-
-                bool isCompleted = index < dotsToFill;
-                bool isCurrent = index == dotsToFill;
-                if (viewModel.isAllCompleted) {
-                  isCompleted = true;
-                  isCurrent = false;
-                }
-
-                return Container(
-                  margin: EdgeInsets.symmetric(horizontal: AppPadding.p4),
-                  width: AppSize.s24,
-                  height: AppSize.s24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isCompleted
-                        ? ColorManager.green
-                        : Colors.transparent,
-                    border: Border.all(
-                      color: isCompleted
-                          ? ColorManager.green
-                          : Colors.grey.shade300,
-                      width: 1.5,
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: isCompleted
-                      ? Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: AppSize.s16,
-                        )
-                      : (isCurrent
-                            ? Container(
-                                width: AppSize.s12,
-                                height: AppSize.s12,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: ColorManager.primary,
-                                ),
-                              )
-                            : null),
-                );
-              }),
-            ),
+            _FillGapsProgressDots(viewModel: viewModel),
             SizedBox(height: AppPadding.p40),
             Expanded(
               child: SingleChildScrollView(
@@ -115,59 +66,16 @@ class __BodyState extends State<_Body> {
                 child: Column(
                   children: [
                     SizedBox(height: AppSize.s40),
-                    // Arabic Text
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      textDirection: TextDirection.rtl,
-                      children: viewModel.arabicSegments.map((segment) {
-                        if (segment.type == SegmentType.text) {
-                          return Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 4.0),
-                            child: Text(
-                              segment.text,
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                                fontFamily: 'Uthmanic',
-                              ),
-                            ),
-                          );
-                        } else {
-                          return _GapInputWidget(
-                            gap: segment.gap!,
-                            viewModel: viewModel,
-                            isArabic: true,
-                          );
-                        }
-                      }).toList(),
+                    _SegmentsWrap(
+                      segments: viewModel.arabicSegments,
+                      isArabic: true,
+                      viewModel: viewModel,
                     ),
                     SizedBox(height: AppSize.s40),
-                    // English Text
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: viewModel.englishSegments.map((segment) {
-                        if (segment.type == SegmentType.text) {
-                          return Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 4.0),
-                            child: Text(
-                              segment.text,
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          );
-                        } else {
-                          return _GapInputWidget(
-                            gap: segment.gap!,
-                            viewModel: viewModel,
-                            isArabic: false,
-                          );
-                        }
-                      }).toList(),
+                    _SegmentsWrap(
+                      segments: viewModel.englishSegments,
+                      isArabic: false,
+                      viewModel: viewModel,
                     ),
                   ],
                 ),
@@ -175,10 +83,11 @@ class __BodyState extends State<_Body> {
             ),
             Padding(
               padding: EdgeInsets.all(AppPadding.p20),
-              child: GestureDetector(
-                onTap: viewModel.isAllCompleted
+              child: _NextButton(
+                enabled: viewModel.isAllCompleted,
+                onPressed: viewModel.isAllCompleted
                     ? () {
-                        Navigator.pushReplacement(
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
@@ -187,31 +96,136 @@ class __BodyState extends State<_Body> {
                         );
                       }
                     : null,
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: AppPadding.p16),
-                  decoration: BoxDecoration(
-                    color: viewModel.isAllCompleted
-                        ? ColorManager.primary
-                        : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(AppPadding.p12),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Next',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: viewModel.isAllCompleted
-                          ? Colors.white
-                          : Colors.grey.shade500,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
               ),
             ),
           ],
         );
       },
+    );
+  }
+}
+
+class _FillGapsProgressDots extends StatelessWidget {
+  final FillGapsViewModel viewModel;
+  const _FillGapsProgressDots({required this.viewModel});
+
+  @override
+  Widget build(BuildContext context) {
+    final totalGaps = viewModel.totalGapsCount;
+    final completedGaps = viewModel.completedGapsCount;
+    final progressRatio = totalGaps == 0 ? 0.0 : completedGaps / totalGaps;
+    final dotsToFill = (progressRatio * 4).floor();
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(4, (index) {
+        bool isCompleted = index < dotsToFill;
+        bool isCurrent = index == dotsToFill;
+        if (viewModel.isAllCompleted) {
+          isCompleted = true;
+          isCurrent = false;
+        }
+
+        return Container(
+          margin: EdgeInsets.symmetric(horizontal: AppPadding.p4),
+          width: AppSize.s24,
+          height: AppSize.s24,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isCompleted ? ColorManager.green : Colors.transparent,
+            border: Border.all(
+              color: isCompleted ? ColorManager.green : Colors.grey.shade300,
+              width: AppSize.s1,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: isCompleted
+              ? Icon(Icons.check, color: Colors.white, size: AppSize.s16)
+              : (isCurrent
+                    ? Container(
+                        width: AppSize.s12,
+                        height: AppSize.s12,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: ColorManager.primary,
+                        ),
+                      )
+                    : null),
+        );
+      }),
+    );
+  }
+}
+
+class _SegmentsWrap extends StatelessWidget {
+  final List<TextSegment> segments;
+  final bool isArabic;
+  final FillGapsViewModel viewModel;
+
+  const _SegmentsWrap({
+    required this.segments,
+    required this.isArabic,
+    required this.viewModel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+      children: segments.map((segment) {
+        if (segment.type == SegmentType.text) {
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: AppPadding.p4),
+            child: Text(
+              segment.text,
+              style: TextStyle(
+                fontSize: isArabic ? FontSizeManager.s24 : FontSizeManager.s18,
+                fontWeight: isArabic
+                    ? FontWeight.bold
+                    : FontWeightManager.reqular,
+                color: isArabic ? Colors.black : Colors.black87,
+                fontFamily: isArabic ? 'Uthmanic' : null,
+              ),
+            ),
+          );
+        }
+        return _GapInputWidget(
+          gap: segment.gap!,
+          viewModel: viewModel,
+          isArabic: isArabic,
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _NextButton extends StatelessWidget {
+  final bool enabled;
+  final VoidCallback? onPressed;
+  const _NextButton({required this.enabled, this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onPressed : null,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: AppPadding.p16),
+        decoration: BoxDecoration(
+          color: enabled ? ColorManager.primary : Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(AppPadding.p12),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          S.current.commonNext,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: enabled ? Colors.white : Colors.grey.shade500,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -230,13 +244,13 @@ class _GapInputWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = TextStyle(
-      fontSize: isArabic ? 24 : 18,
+      fontSize: isArabic ? FontSizeManager.s24 : FontSizeManager.s18,
       fontWeight: isArabic ? FontWeight.bold : FontWeight.normal,
       fontFamily: isArabic ? 'Uthmanic' : null,
     );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      padding: EdgeInsets.symmetric(horizontal: HorizontalSpacing.xSmall4),
       child: Stack(
         alignment: Alignment.center,
         children: [

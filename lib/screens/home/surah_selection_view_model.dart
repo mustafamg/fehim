@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:holy_quran/generated/l10n.dart';
+import 'package:holy_quran/main.dart';
+import 'package:holy_quran/services/audio_cache_service.dart';
 import 'package:holy_quran/services/firestore_service.dart';
+import 'package:holy_quran/utils/helper/shared_pref.dart';
 import 'package:injectable/injectable.dart';
 
 @Injectable()
 class SurahSelectionScreenViewModel extends ChangeNotifier {
-  final FirestoreService _firestoreService = FirestoreService();
-  final String _userId = 'test_user_1';
+  final FirestoreService _firestoreService;
+  final AudioCacheService _audioCacheService = getIt<AudioCacheService>();
+  SurahSelectionScreenViewModel(this._firestoreService);
+
+  String get _userId =>
+      SharedPrefrencesHelper.getString(key: SharedPrefrencesHelper.userIdKey) ??
+      '';
+
   bool _isShowMore = false;
   bool _isLoading = true;
   bool _isInitialized = false;
@@ -109,7 +119,7 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
       );
       notifyListeners();
     } catch (e) {
-      _setError('Failed to update progress: $e');
+      _setError(S.current.surahSelectionProgressUpdateFailed('$e'));
     } finally {
       _setLoading(false);
     }
@@ -121,7 +131,7 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
       await _firestoreService.clearUserProgress(_userId, _surahId);
       await _loadSurahData();
     } catch (e) {
-      _setError('Failed to reset progress: $e');
+      _setError(S.current.surahSelectionResetFailed('$e'));
     } finally {
       _setLoading(false);
     }
@@ -150,7 +160,7 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
           surahInfo['names'],
           _languageCode,
           fallbackLang,
-          defaultValue: 'Surah',
+          defaultValue: S.current.surahSelectionDefaultName,
         );
         _arabicName = surahInfo['names']?['ar'] ?? _surahName;
         _totalVerses = surahInfo['totalVerses'] ?? _verses.length;
@@ -183,11 +193,41 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
       );
       _completedVerses = progressData['completedVerses'] ?? 0;
       _currentVerse = progressData['currentVerse'] ?? 1;
+
+      // Prefetch audio for all verses in the background
+      _prefetchAudioForVerses();
+
       notifyListeners();
     } catch (e) {
-      _setError('Failed to load surah data: $e');
+      _setError(S.current.surahSelectionLoadFailed('$e'));
     } finally {
       _setLoading(false);
+    }
+  }
+
+  void _prefetchAudioForVerses() {
+    final audioUrls = <String>[];
+    for (final verse in _verses) {
+      final verseAudio = verse['audioUrl'] ?? verse['audio'];
+      if (verseAudio is String && verseAudio.isNotEmpty) {
+        audioUrls.add(verseAudio);
+      }
+
+      final words = verse['words'];
+      if (words is List) {
+        for (final word in words) {
+          if (word is Map) {
+            final wordAudio = word['audioUrl'] ?? word['audio'];
+            if (wordAudio is String && wordAudio.isNotEmpty) {
+              audioUrls.add(wordAudio);
+            }
+          }
+        }
+      }
+    }
+
+    if (audioUrls.isNotEmpty) {
+      _audioCacheService.prefetchAudios(audioUrls);
     }
   }
 

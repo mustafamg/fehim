@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:holy_quran/main.dart';
+import 'package:holy_quran/services/audio_cache_service.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
 class SurahLearningPathViewModel extends ChangeNotifier {
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final AudioCacheService _audioCacheService = getIt<AudioCacheService>();
 
   StreamSubscription<PlayerState>? _playerStateSubscription;
   StreamSubscription<Duration>? _durationSubscription;
@@ -17,8 +20,8 @@ class SurahLearningPathViewModel extends ChangeNotifier {
   bool get isAudioLoading => _isAudioLoading;
   List<String> _arabicWords = [];
   List<String> get arabicWords => _arabicWords;
-  List<String> _englishWords = [];
-  List<String> get englishWords => _englishWords;
+  List<String> _englishPhrases = [];
+  List<String> get englishPhrases => _englishPhrases;
   int _currentHighlightedWordIndex = -1;
   int get currentHighlightedWordIndex => _currentHighlightedWordIndex;
   int _currentHighlightedTranslationIndex = -1;
@@ -66,7 +69,7 @@ class SurahLearningPathViewModel extends ChangeNotifier {
     notifyListeners();
 
     _arabicWords = ['مِن', 'شَرِّ', 'مَا', 'خَلَقَ'];
-    _englishWords = ['From the evil', 'of what', 'He', 'has created'];
+    _englishPhrases = ['From the evil', 'of what', 'He', 'has created'];
 
     _currentHighlightedWordIndex = 0;
     _currentHighlightedTranslationIndex = 0;
@@ -78,16 +81,61 @@ class SurahLearningPathViewModel extends ChangeNotifier {
     required String arabicText,
     required String translationText,
     required String audioUrl,
+    List<Map<String, dynamic>>? words,
   }) async {
     _isLoading = true;
     notifyListeners();
 
-    _arabicWords = arabicText.split(' ');
+    if (words != null && words.isNotEmpty) {
+      _arabicWords = words
+          .map((w) => (w['arabic'] as String?)?.trim() ?? '')
+          .where((word) => word.isNotEmpty)
+          .toList();
+      _englishPhrases = words
+          .map((w) {
+            final translation = w['translation'];
+            if (translation is Map<String, dynamic>) {
+              return (translation['en'] as String?)?.trim() ?? '';
+            }
+            return (translation as String?)?.trim() ?? '';
+          })
+          .where((phrase) => phrase.isNotEmpty)
+          .toList();
+    } else {
+      _arabicWords = arabicText.split(RegExp(r'\s+'));
+      final fallbackPhrases = translationText.split(RegExp(r'\s+'));
+      if (fallbackPhrases.length == _arabicWords.length) {
+        _englishPhrases = fallbackPhrases;
+      } else {
+        _englishPhrases = List.generate(
+          _arabicWords.length,
+          (_) => translationText,
+        );
+      }
+    }
 
-    _englishWords = translationText.split(' ');
-    _currentHighlightedWordIndex = 0;
-    _currentHighlightedTranslationIndex = 0;
-    await _audioPlayer.setSourceUrl(audioUrl);
+    if (_englishPhrases.length < _arabicWords.length) {
+      _englishPhrases.addAll(
+        List.filled(_arabicWords.length - _englishPhrases.length, ''),
+      );
+    }
+
+    _currentHighlightedWordIndex = _arabicWords.isEmpty ? -1 : 0;
+    _currentHighlightedTranslationIndex =
+        (_englishPhrases.isEmpty || _currentHighlightedWordIndex == -1)
+        ? -1
+        : 0;
+
+    final localPath = await _audioCacheService.getCachedAudioPath(audioUrl);
+    if (localPath != null) {
+      await _audioPlayer.setSource(DeviceFileSource(localPath));
+    } else {
+      // Audio not cached and cannot download (likely offline)
+      print('Audio not available offline for caching: $audioUrl');
+      // Still set the URL for potential online playback later
+      await _audioPlayer.setSourceUrl(audioUrl);
+    }
+
     _currentAudioUrl = audioUrl;
     _isLoading = false;
     notifyListeners();
@@ -101,14 +149,17 @@ class SurahLearningPathViewModel extends ChangeNotifier {
       0,
       _arabicWords.length - 1,
     );
-    final newEnglishIndex = (progress * _englishWords.length).floor().clamp(
-      0,
-      _englishWords.length - 1,
-    );
-    if (newArabicIndex != _currentHighlightedWordIndex ||
-        newEnglishIndex != _currentHighlightedTranslationIndex) {
+    if (newArabicIndex != _currentHighlightedWordIndex) {
       _currentHighlightedWordIndex = newArabicIndex;
-      _currentHighlightedTranslationIndex = newEnglishIndex;
+    }
+    if (_englishPhrases.isNotEmpty && _currentHighlightedWordIndex >= 0) {
+      final maxIndex = _englishPhrases.length - 1;
+      _currentHighlightedTranslationIndex = _currentHighlightedWordIndex.clamp(
+        0,
+        maxIndex,
+      );
+    } else {
+      _currentHighlightedTranslationIndex = -1;
     }
   }
 
@@ -138,7 +189,19 @@ class SurahLearningPathViewModel extends ChangeNotifier {
         _hasFinishedPlaying = false;
         _currentAudioPosition = Duration.zero;
         _updateHighlights(Duration.zero);
-        await _audioPlayer.play(UrlSource(_currentAudioUrl!));
+
+        final localPath = await _audioCacheService.getCachedAudioPath(
+          _currentAudioUrl!,
+        );
+        if (localPath != null) {
+          await _audioPlayer.play(DeviceFileSource(localPath));
+        } else {
+          // Audio not cached and cannot download (likely offline)
+          print('Audio not available offline: $_currentAudioUrl');
+          _isAudioLoading = false;
+          notifyListeners();
+          return;
+        }
       } else {
         await _audioPlayer.resume();
       }

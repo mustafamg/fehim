@@ -1,16 +1,20 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
+import 'package:get/get_utils/src/extensions/context_extensions.dart';
+import 'package:holy_quran/generated/l10n.dart';
 import 'package:holy_quran/main.dart';
 import 'package:holy_quran/screens/components/custom_app_bar.dart';
 import 'package:holy_quran/services/firestore_service.dart';
 import 'package:holy_quran/values/assets_manager.dart';
+import 'package:holy_quran/values/values_manager.dart';
 import 'package:provider/provider.dart';
 
 import '../../values/color_manager.dart';
-import '../../values/values_manager.dart';
 import '../home/surah_selection_view_model.dart';
+import '../surah_learning_path/surah_learning_path_screen.dart';
 import 'arrange_puzzle_view_model.dart';
 
 class ArrangePuzzleScreen extends StatefulWidget {
@@ -45,7 +49,8 @@ class _ArrangePuzzleScreenState extends State<ArrangePuzzleScreen> {
     if (audioUrl.isEmpty) {
       try {
         final firestoreService = FirestoreService();
-        final surahData = await firestoreService.getSurahData('al_falaq');
+        final surahId = widget.verse['surahId'] ?? 'al_falaq';
+        final surahData = await firestoreService.getSurahData(surahId);
         final verses = List<Map<String, dynamic>>.from(
           surahData['verses'] ?? [],
         );
@@ -77,7 +82,7 @@ class _ArrangePuzzleScreenState extends State<ArrangePuzzleScreen> {
         final audioUrl = snapshot.data ?? '';
         return ChangeNotifierProvider(
           create: (_) {
-            final viewModel = ArrangePuzzleViewModel();
+            final viewModel = getIt<ArrangePuzzleViewModel>();
             if (widget.verse.containsKey('words') &&
                 widget.verse['words'] is List) {
               final wordsList = List<Map<String, dynamic>>.from(
@@ -86,14 +91,11 @@ class _ArrangePuzzleScreenState extends State<ArrangePuzzleScreen> {
               viewModel.init(
                 wordsList,
                 audioUrl,
-                userId: widget.verse['userId'],
                 surahId: widget.verse['surahId'],
                 verseNumber: widget.verse['verseNumber'],
               );
             } else {
-              viewModel.setError(
-                'Missing puzzle data. Please complete the learning path first.',
-              );
+              viewModel.setError(S.current.arrangePuzzleMissingData);
             }
             return viewModel;
           },
@@ -107,6 +109,320 @@ class _ArrangePuzzleScreenState extends State<ArrangePuzzleScreen> {
   }
 }
 
+class _ArrangePuzzleProgressDots extends StatelessWidget {
+  final ArrangePuzzleViewModel viewModel;
+  const _ArrangePuzzleProgressDots({required this.viewModel});
+
+  @override
+  Widget build(BuildContext context) {
+    final pageMatchedWords = viewModel.currentPageMatchedWords;
+    final activeIndex = pageMatchedWords.indexWhere((word) => word == null);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(pageMatchedWords.length, (index) {
+        final isCompleted = pageMatchedWords[index] != null;
+        final isCurrent =
+            !isCompleted && (activeIndex == -1 ? false : index == activeIndex);
+        final isFullyCompleted = viewModel.isCurrentPageComplete;
+        return Container(
+          margin: EdgeInsets.symmetric(horizontal: AppPadding.p4),
+          width: isFullyCompleted ? AppSize.s24 : AppSize.s24,
+          height: isFullyCompleted ? AppSize.s24 : AppSize.s24,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isCompleted ? ColorManager.green : Colors.transparent,
+            border: Border.all(
+              color: isCompleted ? ColorManager.green : Colors.grey.shade300,
+              width: AppSize.s1_5,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: isCompleted
+              ? Icon(Icons.check, color: Colors.white, size: AppSize.s16)
+              : (isCurrent
+                    ? Container(
+                        width: AppSize.s12,
+                        height: AppSize.s12,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: ColorManager.primary,
+                        ),
+                      )
+                    : null),
+        );
+      }),
+    );
+  }
+}
+
+class _PuzzleBoard extends StatelessWidget {
+  final ArrangePuzzleViewModel viewModel;
+  const _PuzzleBoard({required this.viewModel});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: context.height * AppRatio.r0_3,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(AppPadding.p16),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.all(AppPadding.p20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _MatchedSlots(viewModel: viewModel),
+                      SizedBox(height: AppPadding.p24),
+                      _DraggableWordsWrap(viewModel: viewModel),
+                    ],
+                  ),
+                ),
+              ),
+              _AudioControlsBar(viewModel: viewModel),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MatchedSlots extends StatelessWidget {
+  final ArrangePuzzleViewModel viewModel;
+  const _MatchedSlots({required this.viewModel});
+
+  @override
+  Widget build(BuildContext context) {
+    final slots = viewModel.currentPageMatchedWords;
+    return Center(
+      child: Wrap(
+        spacing: AppPadding.p8,
+        runSpacing: AppPadding.p8,
+        alignment: WrapAlignment.center,
+        children: List.generate(slots.length, (index) {
+          final displayIndex = slots.length - 1 - index;
+          final matchedWord = slots[displayIndex];
+          final isError = viewModel.failedIndex == displayIndex;
+          return DragTarget<String>(
+            builder: (context, candidateData, rejectedData) {
+              return Container(
+                width: WidgetWidth.w60,
+                height: WidgetHeight.h40,
+                padding: EdgeInsets.all(AppSize.s4),
+                decoration: BoxDecoration(
+                  color: matchedWord != null
+                      ? ColorManager.green
+                      : (isError ? ColorManager.red : const Color(0xFFF3F5F5)),
+                  borderRadius: BorderRadius.circular(AppSize.s4),
+                  border: Border.all(
+                    color: matchedWord != null
+                        ? ColorManager.green
+                        : (candidateData.isNotEmpty
+                              ? ColorManager.primary
+                              : (isError
+                                    ? ColorManager.red
+                                    : const Color(0xFFD9DBE1))),
+                    width: AppRatio.r0_6,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child:
+                    matchedWord != null ||
+                        (isError && viewModel.failedWord != null)
+                    ? Text(
+                        matchedWord ?? viewModel.failedWord!,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: matchedWord != null
+                              ? Colors.white
+                              : Colors.white,
+                          fontFamily: 'Uthmanic',
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: AppCount.c1,
+                        overflow: TextOverflow.ellipsis,
+                      )
+                    : null,
+              );
+            },
+            onWillAcceptWithDetails: (_) => matchedWord == null,
+            onAcceptWithDetails: (details) {
+              viewModel.onWordDropped(details.data, displayIndex);
+            },
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _DraggableWordsWrap extends StatelessWidget {
+  final ArrangePuzzleViewModel viewModel;
+  const _DraggableWordsWrap({required this.viewModel});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Wrap(
+        spacing: AppPadding.p8,
+        runSpacing: AppPadding.p8,
+        alignment: WrapAlignment.center,
+        children: viewModel.draggableWords.map((word) {
+          return Draggable<String>(
+            data: word,
+            feedback: _DraggableWordWidget(word: word, isDragging: true),
+            childWhenDragging: Opacity(
+              opacity: AppOpacity.o0_3,
+              child: _DraggableWordWidget(word: word),
+            ),
+            child: _DraggableWordWidget(word: word),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class _AudioControlsBar extends StatelessWidget {
+  final ArrangePuzzleViewModel viewModel;
+  const _AudioControlsBar({required this.viewModel});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppPadding.p16,
+        vertical: AppPadding.p12,
+      ),
+      decoration: BoxDecoration(
+        color: viewModel.isPlaying
+            ? ColorManager.secondary
+            : Colors.grey.shade500,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(AppPadding.p16),
+          bottomRight: Radius.circular(AppPadding.p16),
+        ),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: viewModel.toggleAudio,
+            child: viewModel.isAudioLoading
+                ? SizedBox(
+                    width: AppSize.s28,
+                    height: AppSize.s28,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.0,
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        Colors.white,
+                      ),
+                    ),
+                  )
+                : Icon(
+                    viewModel.isPlaying
+                        ? Icons.pause_circle_filled
+                        : Icons.play_circle_fill,
+                    color: Colors.white,
+                    size: AppSize.s28,
+                  ),
+          ),
+          SizedBox(width: AppPadding.p12),
+          Expanded(
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: AppSize.s4,
+                thumbShape: RoundSliderThumbShape(
+                  enabledThumbRadius: AppSize.s8,
+                ),
+                overlayShape: RoundSliderOverlayShape(
+                  overlayRadius: AppSize.s16,
+                ),
+                activeTrackColor: Colors.white,
+                inactiveTrackColor: Colors.white.withValues(
+                  alpha: AppOpacity.a0_3,
+                ),
+                thumbColor: Colors.white,
+                overlayColor: Colors.white.withValues(alpha: AppOpacity.a0_1),
+              ),
+              child: Slider(
+                value: viewModel.currentPosition.inMilliseconds.toDouble(),
+                min: AppSize.s0,
+                max: viewModel.totalDuration.inMilliseconds > 0
+                    ? viewModel.totalDuration.inMilliseconds.toDouble()
+                    : AppSize.s1,
+                onChanged: (value) {
+                  viewModel.seekAudio(Duration(milliseconds: value.toInt()));
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ArrangePrimaryButton extends StatelessWidget {
+  final bool enabled;
+  final bool isLoading;
+  final VoidCallback? onPressed;
+  final String label;
+  const _ArrangePrimaryButton({
+    required this.enabled,
+    required this.isLoading,
+    required this.onPressed,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled && !isLoading ? onPressed : null,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: AppPadding.p16),
+        decoration: BoxDecoration(
+          color: enabled ? ColorManager.primary : Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(AppPadding.p12),
+        ),
+        alignment: Alignment.center,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Text(
+              label,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: enabled ? Colors.white : Colors.grey.shade500,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (isLoading)
+              Positioned(
+                right: AppPadding.p24,
+                child: SizedBox(
+                  width: AppSize.s18,
+                  height: AppSize.s18,
+                  child: const CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _Body extends StatefulWidget {
   final Map<String, dynamic> verse;
   const _Body({required this.verse});
@@ -115,13 +431,66 @@ class _Body extends StatefulWidget {
   State<_Body> createState() => _BodyState();
 }
 
-class _BodyState extends State<_Body> {
-  bool _isFinishLoading = false;
+class _BodyState extends State<_Body> with SingleTickerProviderStateMixin {
+  late final AnimationController _shakeController;
+  String? _lastErrorWord;
+  int _lastErrorTick = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _shakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+  }
+
+  @override
+  void dispose() {
+    _shakeController.dispose();
+    super.dispose();
+  }
+
+  void _triggerShake() {
+    _shakeController.forward(from: 0.0);
+    HapticFeedback.heavyImpact();
+    HapticFeedback.vibrate();
+  }
+
+  Future<bool> _onWillPop(ArrangePuzzleViewModel viewModel) async {
+    if (viewModel.canGoPrevious) {
+      viewModel.goToPreviousPage();
+      return false;
+    }
+    return true;
+  }
+
+  void _handleBackPress(ArrangePuzzleViewModel viewModel) {
+    if (viewModel.canGoPrevious) {
+      viewModel.goToPreviousPage();
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ArrangePuzzleViewModel>(
       builder: (context, viewModel, child) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final currentError = viewModel.errorWord;
+          final tick = viewModel.errorTick;
+          if (currentError != null &&
+              (currentError != _lastErrorWord || tick != _lastErrorTick)) {
+            _lastErrorWord = currentError;
+            _lastErrorTick = tick;
+            _triggerShake();
+          } else if (currentError == null) {
+            _lastErrorWord = null;
+            _lastErrorTick = 0;
+          }
+        });
+
         if (viewModel.error != null) {
           return Center(
             child: Padding(
@@ -129,7 +498,7 @@ class _BodyState extends State<_Body> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.error_outline,
                     size: AppSize.s64,
                     color: Colors.red,
@@ -146,452 +515,81 @@ class _BodyState extends State<_Body> {
                   SizedBox(height: AppPadding.p16),
                   ElevatedButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text('Go Back'),
+                    child: Text(S.current.arrangePuzzleGoBack),
                   ),
                 ],
               ),
             ),
           );
         }
-        return Column(
-          children: [
-            CustomAppBar(
-              title: 'Arrange the Puzzle',
-              subtitle: "Let's put the pieces together",
-              showBackButton: false,
-              showProgress: true,
-              currentStep: viewModel.matchedWords
-                  .where((w) => w != null)
-                  .length,
-              totalSteps: viewModel.matchedWords.length,
-            ),
 
-            // Page navigation with arrows and page indicator
-            if (viewModel.totalPages > 1)
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Left arrow
-                    GestureDetector(
-                      onTap: viewModel.canGoPrevious
-                          ? () => viewModel.goToPreviousPage()
-                          : null,
-                      child: Container(
-                        padding: EdgeInsets.all(AppPadding.p8),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: viewModel.canGoPrevious
-                              ? ColorManager.primary
-                              : Colors.grey.shade300,
-                        ),
-                        child: Icon(
-                          Icons.arrow_back,
-                          color: viewModel.canGoPrevious
-                              ? Colors.white
-                              : Colors.grey.shade500,
-                          size: AppSize.s20,
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(width: AppPadding.p20),
-
-                    // Page indicator
-                    Text(
-                      '${viewModel.currentPage + 1} / ${viewModel.totalPages}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: ColorManager.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    SizedBox(width: AppPadding.p20),
-
-                    // Right arrow
-                    GestureDetector(
-                      onTap: viewModel.canGoNext
-                          ? () => viewModel.goToNextPage()
-                          : null,
-                      child: Container(
-                        padding: EdgeInsets.all(AppPadding.p8),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: viewModel.canGoNext
-                              ? ColorManager.primary
-                              : Colors.grey.shade300,
-                        ),
-                        child: Icon(
-                          Icons.arrow_forward,
-                          color: viewModel.canGoNext
-                              ? Colors.white
-                              : Colors.grey.shade500,
-                          size: AppSize.s20,
-                        ),
-                      ),
-                    ),
-                  ],
+        return AnimatedBuilder(
+          animation: _shakeController,
+          builder: (context, child) {
+            final dx = math.sin(_shakeController.value * math.pi * 6) * 8;
+            return Transform.translate(offset: Offset(dx, 0), child: child);
+          },
+          child: WillPopScope(
+            onWillPop: () => _onWillPop(viewModel),
+            child: Column(
+              children: [
+                CustomAppBar(
+                  title: S.current.arrangePuzzleTitle,
+                  subtitle: S.current.arrangePuzzleSubtitle,
+                  showBackButton: false,
+                  showProgress: true,
+                  currentStep: viewModel.matchedCount,
+                  totalSteps: viewModel.matchedWords.length,
+                  onBackPressed: () => _handleBackPress(viewModel),
                 ),
-              ),
+                SizedBox(height: AppPadding.p8),
+                _ArrangePuzzleProgressDots(viewModel: viewModel),
+                SizedBox(height: AppPadding.p40),
+                Expanded(child: _PuzzleBoard(viewModel: viewModel)),
+                Padding(
+                  padding: EdgeInsets.all(AppPadding.p20),
+                  child: Builder(
+                    builder: (context) {
+                      final canFinish = viewModel.isAllMatched;
+                      final canAdvancePage =
+                          viewModel.isCurrentPageComplete &&
+                          viewModel.canGoNext;
+                      final buttonLabel = canFinish
+                          ? S.current.arrangePuzzleFinish
+                          : S.current.commonNext;
+                      final showLoader = canFinish && viewModel.isFinishLoading;
+                      final enabled = canFinish
+                          ? !viewModel.isFinishLoading
+                          : canAdvancePage;
+                      final action = canFinish
+                          ? (enabled ? _handleFinishTap : null)
+                          : (enabled ? viewModel.goToNextPage : null);
 
-            SizedBox(height: AppPadding.p20),
-
-            // Progress indicators
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(viewModel.totalPages, (index) {
-                bool isCompleted = viewModel.isAllMatched;
-                bool isCurrent = index == viewModel.currentPage;
-                bool isPageCompleted =
-                    index < viewModel.currentPage ||
-                    (index == viewModel.currentPage &&
-                        viewModel.isCurrentPageComplete);
-                return Container(
-                  margin: EdgeInsets.symmetric(horizontal: AppPadding.p4),
-                  width: isCompleted ? AppSize.s24 : AppSize.s24,
-                  height: isCompleted ? AppSize.s24 : AppSize.s24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isPageCompleted
-                        ? ColorManager.green
-                        : Colors.transparent,
-                    border: Border.all(
-                      color: isPageCompleted
-                          ? ColorManager.green
-                          : (isCurrent
-                                ? Colors.grey.shade300
-                                : Colors.grey.shade300),
-                      width: AppSize.s1_5,
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: isPageCompleted
-                      ? Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: AppSize.s16,
-                        )
-                      : (isCurrent
-                            ? Container(
-                                width: AppSize.s12,
-                                height: AppSize.s12,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: ColorManager.primary,
-                                ),
-                              )
-                            : null),
-                );
-              }),
-            ),
-            SizedBox(height: AppPadding.p40),
-            SizedBox(
-              height: context.height * AppRatio.r0_3,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppPadding.p20),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(AppPadding.p16),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.all(AppPadding.p20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Center(
-                                  child: Wrap(
-                                    spacing: AppPadding.p8,
-                                    runSpacing: AppPadding.p8,
-                                    alignment: WrapAlignment.center,
-                                    children: List.generate(
-                                      viewModel.currentPageMatchedWords.length,
-                                      (index) {
-                                        int displayIndex =
-                                            viewModel
-                                                .currentPageMatchedWords
-                                                .length -
-                                            1 -
-                                            index;
-                                        String? matchedWord = viewModel
-                                            .currentPageMatchedWords[displayIndex];
-                                        bool isError =
-                                            viewModel.failedIndex ==
-                                            displayIndex;
-                                        return DragTarget<String>(
-                                          builder: (context, candidateData, rejectedData) {
-                                            return Container(
-                                              width: WidgetWidth.w60,
-                                              height: WidgetHeight.h40,
-                                              padding: EdgeInsets.all(
-                                                AppSize.s4,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: matchedWord != null
-                                                    ? ColorManager.green
-                                                    : (isError
-                                                          ? ColorManager.red
-                                                          : Color(0xFFF3F5F5)),
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                      AppSize.s4,
-                                                    ),
-                                                border: Border.all(
-                                                  color: matchedWord != null
-                                                      ? ColorManager.green
-                                                      : (candidateData
-                                                                .isNotEmpty
-                                                            ? ColorManager
-                                                                  .primary
-                                                            : (isError
-                                                                  ? ColorManager
-                                                                        .red
-                                                                  : Color(
-                                                                      0xFFD9DBE1,
-                                                                    ))),
-                                                  width: AppRatio.r0_6,
-                                                ),
-                                              ),
-                                              alignment: Alignment.center,
-                                              child:
-                                                  matchedWord != null ||
-                                                      (isError &&
-                                                          viewModel
-                                                                  .failedWord !=
-                                                              null)
-                                                  ? Text(
-                                                      matchedWord ??
-                                                          viewModel.failedWord!,
-                                                      style: Theme.of(context)
-                                                          .textTheme
-                                                          .bodyMedium
-                                                          ?.copyWith(
-                                                            color:
-                                                                matchedWord !=
-                                                                    null
-                                                                ? Colors.white
-                                                                : (isError
-                                                                      ? Colors
-                                                                            .white
-                                                                      : Colors
-                                                                            .black87),
-                                                            fontFamily:
-                                                                'Uthmanic',
-                                                          ),
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      maxLines: AppCount.c1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    )
-                                                  : null,
-                                            );
-                                          },
-                                          onWillAcceptWithDetails: (data) =>
-                                              matchedWord == null,
-                                          onAcceptWithDetails: (details) {
-                                            viewModel.onWordDropped(
-                                              details.data,
-                                              displayIndex,
-                                            );
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: AppPadding.p24),
-                                Center(
-                                  child: Wrap(
-                                    spacing: AppPadding.p8,
-                                    runSpacing: AppPadding.p8,
-                                    alignment: WrapAlignment.center,
-                                    children: viewModel.draggableWords.map((
-                                      word,
-                                    ) {
-                                      return Draggable<String>(
-                                        data: word,
-                                        feedback: _DraggableWordWidget(
-                                          word: word,
-                                          isDragging: true,
-                                        ),
-                                        childWhenDragging: Opacity(
-                                          opacity: AppOpacity.o0_3,
-                                          child: _DraggableWordWidget(
-                                            word: word,
-                                          ),
-                                        ),
-                                        child: _DraggableWordWidget(word: word),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: AppPadding.p16,
-                            vertical: AppPadding.p12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: viewModel.isPlaying
-                                ? ColorManager.secondary
-                                : Colors.grey.shade500,
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(AppPadding.p16),
-                              bottomRight: Radius.circular(AppPadding.p16),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () => viewModel.toggleAudio(),
-                                child: viewModel.isAudioLoading
-                                    ? SizedBox(
-                                        width: AppSize.s28,
-                                        height: AppSize.s28,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.0,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                Colors.white,
-                                              ),
-                                        ),
-                                      )
-                                    : Icon(
-                                        viewModel.isPlaying
-                                            ? Icons.pause_circle_filled
-                                            : Icons.play_circle_fill,
-                                        color: Colors.white,
-                                        size: AppSize.s28,
-                                      ),
-                              ),
-                              SizedBox(width: AppPadding.p12),
-                              Expanded(
-                                child: SliderTheme(
-                                  data: SliderTheme.of(context).copyWith(
-                                    trackHeight: AppSize.s4,
-                                    thumbShape: RoundSliderThumbShape(
-                                      enabledThumbRadius: AppSize.s8,
-                                    ),
-                                    overlayShape: RoundSliderOverlayShape(
-                                      overlayRadius: AppSize.s16,
-                                    ),
-                                    activeTrackColor: Colors.white,
-                                    inactiveTrackColor: Colors.white.withValues(
-                                      alpha: AppOpacity.a0_3,
-                                    ),
-                                    thumbColor: Colors.white,
-                                    overlayColor: Colors.white.withValues(
-                                      alpha: AppOpacity.a0_1,
-                                    ),
-                                  ),
-                                  child: Slider(
-                                    value: viewModel
-                                        .currentPosition
-                                        .inMilliseconds
-                                        .toDouble(),
-                                    min: AppSize.s0,
-                                    max:
-                                        viewModel.totalDuration.inMilliseconds >
-                                            0
-                                        ? viewModel.totalDuration.inMilliseconds
-                                              .toDouble()
-                                        : AppSize.s1,
-                                    onChanged: (value) {
-                                      viewModel.seekAudio(
-                                        Duration(milliseconds: value.toInt()),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                      return _ArrangePrimaryButton(
+                        label: buttonLabel,
+                        enabled: enabled,
+                        isLoading: showLoader,
+                        onPressed: action,
+                      );
+                    },
                   ),
                 ),
-              ),
+              ],
             ),
-            Padding(
-              padding: EdgeInsets.all(AppPadding.p20),
-              child: GestureDetector(
-                onTap: viewModel.isAllMatched && !_isFinishLoading
-                    ? _handleFinishTap
-                    : null,
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: AppPadding.p16),
-                  decoration: BoxDecoration(
-                    color: viewModel.isAllMatched
-                        ? ColorManager.primary
-                        : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(AppPadding.p12),
-                  ),
-                  alignment: Alignment.center,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Text(
-                        'Finish',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: viewModel.isAllMatched
-                                  ? Colors.white
-                                  : Colors.grey.shade500,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      if (_isFinishLoading)
-                        Positioned(
-                          right: AppPadding.p24,
-                          child: SizedBox(
-                            width: AppSize.s18,
-                            height: AppSize.s18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: AppSize.s2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         );
       },
     );
   }
 
   Future<void> _handleFinishTap() async {
-    if (_isFinishLoading) return;
-    setState(() {
-      _isFinishLoading = true;
-    });
-
+    final viewModel = context.read<ArrangePuzzleViewModel>();
+    if (viewModel.isFinishLoading) return;
+    viewModel.setFinishLoading(true);
     try {
       await _showFinishDialog();
     } finally {
-      if (mounted) {
-        setState(() {
-          _isFinishLoading = false;
-        });
-      }
+      viewModel.setFinishLoading(false);
     }
   }
 
@@ -636,9 +634,8 @@ class _BodyState extends State<_Body> {
                     shape: BoxShape.circle,
                   ),
                   padding: EdgeInsets.all(AppPadding.p8),
-                  child: SvgPicture.asset(
-                    SvgAssets.confettiIcon,
-                    fit: BoxFit.contain,
+                  child: Image.asset(
+                    ImageAssets.confettiIcon,
                     width: AppSize.s40,
                     height: AppSize.s40,
                   ),
@@ -648,7 +645,7 @@ class _BodyState extends State<_Body> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Congratulations',
+                    S.current.arrangePuzzleCongratsTitle,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: Colors.black87,
                       fontWeight: FontWeight.bold,
@@ -661,12 +658,12 @@ class _BodyState extends State<_Body> {
                         color: Colors.grey.shade700,
                       ),
                       children: [
-                        const TextSpan(text: "You've earned "),
+                        TextSpan(text: S.current.arrangePuzzleEarnedPrefix),
                         TextSpan(
-                          text: "+1 verse",
+                          text: S.current.arrangePuzzleEarnedHighlight(1),
                           style: TextStyle(color: ColorManager.green),
                         ),
-                        const TextSpan(text: " in your heart."),
+                        TextSpan(text: S.current.arrangePuzzleEarnedSuffix),
                       ],
                     ),
                   ),
@@ -694,7 +691,7 @@ class _BodyState extends State<_Body> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Surah Al-Falaq',
+                              homeViewModel.surahName,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
                                     color: Colors.white,
@@ -702,7 +699,7 @@ class _BodyState extends State<_Body> {
                                   ),
                             ),
                             Text(
-                              'سورة الفلق',
+                              homeViewModel.arabicName,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
                                     color: Colors.white,
@@ -789,7 +786,7 @@ class _BodyState extends State<_Body> {
                                   ),
                                 ),
                                 child: Text(
-                                  'Home',
+                                  S.current.commonHome,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -805,9 +802,35 @@ class _BodyState extends State<_Body> {
                                   await viewModel.updateProgress();
                                   if (!context.mounted) return;
 
-                                  Navigator.of(
-                                    context,
-                                  ).popUntil((route) => route.isFirst);
+                                  await homeViewModel.refresh();
+                                  final nextVerseNumber =
+                                      homeViewModel.currentVerse;
+                                  if (nextVerseNumber <=
+                                      homeViewModel.totalVerses) {
+                                    final nextVerse = Map<String, dynamic>.from(
+                                      homeViewModel.verses.firstWhere(
+                                        (verse) =>
+                                            verse['verseNumber'] ==
+                                            nextVerseNumber,
+                                        orElse: () => widget.verse,
+                                      ),
+                                    );
+                                    nextVerse['surahId'] =
+                                        homeViewModel.selectedSurahId;
+
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            SurahLearningPathScreen(
+                                              verse: nextVerse,
+                                            ),
+                                      ),
+                                    );
+                                  } else {
+                                    Navigator.of(
+                                      context,
+                                    ).popUntil((route) => route.isFirst);
+                                  }
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white,
@@ -821,7 +844,7 @@ class _BodyState extends State<_Body> {
                                   ),
                                 ),
                                 child: Text(
-                                  'Next Verse',
+                                  S.current.arrangePuzzleNextVerse,
                                   style: TextStyle(
                                     color: Colors.black87,
                                     fontWeight: FontWeight.bold,

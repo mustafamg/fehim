@@ -24,4 +24,5 @@ class ColorManager {
   static Color textColor2 = const Color(0xff1F1F1F);
   static Color iconBackgroundColors = const Color(0xffF7F7F8);
   static Color lineColor = const Color(0xffD9DBE1);
+  static Color newColor = const Color(0xff0F0F0E);
 }
