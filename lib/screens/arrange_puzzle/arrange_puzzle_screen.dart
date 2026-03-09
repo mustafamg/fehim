@@ -19,7 +19,12 @@ import 'arrange_puzzle_view_model.dart';
 
 class ArrangePuzzleScreen extends StatefulWidget {
   final Map<String, dynamic> verse;
-  const ArrangePuzzleScreen({super.key, required this.verse});
+  final String? languageCode;
+  const ArrangePuzzleScreen({
+    super.key,
+    required this.verse,
+    this.languageCode,
+  });
   @override
   State<ArrangePuzzleScreen> createState() => _ArrangePuzzleScreenState();
 }
@@ -101,7 +106,12 @@ class _ArrangePuzzleScreenState extends State<ArrangePuzzleScreen> {
           },
           child: Scaffold(
             backgroundColor: Colors.white,
-            body: SafeArea(child: _Body(verse: widget.verse)),
+            body: SafeArea(
+              child: _Body(
+                verse: widget.verse,
+                languageCode: widget.languageCode,
+              ),
+            ),
           ),
         );
       },
@@ -425,7 +435,8 @@ class _ArrangePrimaryButton extends StatelessWidget {
 
 class _Body extends StatefulWidget {
   final Map<String, dynamic> verse;
-  const _Body({required this.verse});
+  final String? languageCode;
+  const _Body({required this.verse, this.languageCode});
 
   @override
   State<_Body> createState() => _BodyState();
@@ -455,14 +466,6 @@ class _BodyState extends State<_Body> with SingleTickerProviderStateMixin {
     _shakeController.forward(from: 0.0);
     HapticFeedback.heavyImpact();
     HapticFeedback.vibrate();
-  }
-
-  Future<bool> _onWillPop(ArrangePuzzleViewModel viewModel) async {
-    if (viewModel.canGoPrevious) {
-      viewModel.goToPreviousPage();
-      return false;
-    }
-    return true;
   }
 
   void _handleBackPress(ArrangePuzzleViewModel viewModel) {
@@ -529,8 +532,12 @@ class _BodyState extends State<_Body> with SingleTickerProviderStateMixin {
             final dx = math.sin(_shakeController.value * math.pi * 6) * 8;
             return Transform.translate(offset: Offset(dx, 0), child: child);
           },
-          child: WillPopScope(
-            onWillPop: () => _onWillPop(viewModel),
+          child: PopScope(
+            onPopInvokedWithResult: (didPop, result) {
+              if (!didPop) {
+                _handleBackPress(viewModel);
+              }
+            },
             child: Column(
               children: [
                 CustomAppBar(
@@ -752,7 +759,7 @@ class _BodyState extends State<_Body> with SingleTickerProviderStateMixin {
                         ),
                         SizedBox(height: AppPadding.p16),
                         Text(
-                          '${widget.verse['verseNumber']} - ${widget.verse['translation'] ?? ''} - ${widget.verse['arabic'] ?? ''}',
+                          '${widget.verse['verseNumber']} - ${_resolveTranslation(widget.verse['translations'], widget.languageCode)} - ${widget.verse['arabic'] ?? ''}',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Colors.white.withValues(alpha: 0.9),
@@ -803,6 +810,7 @@ class _BodyState extends State<_Body> with SingleTickerProviderStateMixin {
                                   if (!context.mounted) return;
 
                                   await homeViewModel.refresh();
+                                  if (!context.mounted) return;
                                   final nextVerseNumber =
                                       homeViewModel.currentVerse;
                                   if (nextVerseNumber <=
@@ -818,15 +826,19 @@ class _BodyState extends State<_Body> with SingleTickerProviderStateMixin {
                                     nextVerse['surahId'] =
                                         homeViewModel.selectedSurahId;
 
+                                    if (!context.mounted) return;
                                     Navigator.of(context).pushReplacement(
                                       MaterialPageRoute(
                                         builder: (context) =>
                                             SurahLearningPathScreen(
                                               verse: nextVerse,
+                                              languageCode:
+                                                  homeViewModel.languageCode,
                                             ),
                                       ),
                                     );
                                   } else {
+                                    if (!context.mounted) return;
                                     Navigator.of(
                                       context,
                                     ).popUntil((route) => route.isFirst);
@@ -917,6 +929,34 @@ Widget _buildDottedLine() {
       );
     },
   );
+}
+
+String _resolveTranslation(dynamic translations, String? preferred) {
+  if (translations == null) return '';
+  if (translations is Map) {
+    final map = translations.map((key, value) => MapEntry('$key', '$value'));
+    final preferredValue = preferred != null ? map[preferred] : null;
+    if (preferredValue is String && preferredValue.trim().isNotEmpty) {
+      return preferredValue.trim();
+    }
+    final englishValue = map['en'];
+    if (englishValue is String && englishValue.trim().isNotEmpty) {
+      return englishValue.trim();
+    }
+    try {
+      final fallback = map.values.firstWhere(
+        (value) => value.trim().isNotEmpty,
+        orElse: () => '',
+      );
+      return fallback.trim();
+    } catch (_) {
+      return '';
+    }
+  }
+  if (translations is String) {
+    return translations.trim();
+  }
+  return '';
 }
 
 class _DraggableWordWidget extends StatelessWidget {

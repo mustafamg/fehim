@@ -10,7 +10,14 @@ import 'package:injectable/injectable.dart';
 class SurahSelectionScreenViewModel extends ChangeNotifier {
   final FirestoreService _firestoreService;
   final AudioCacheService _audioCacheService = getIt<AudioCacheService>();
-  SurahSelectionScreenViewModel(this._firestoreService);
+  SurahSelectionScreenViewModel(this._firestoreService) {
+    final savedLanguage = SharedPrefrencesHelper.getString(
+      key: SharedPrefrencesHelper.languageCodeKey,
+    );
+    if (savedLanguage != null && savedLanguage.isNotEmpty) {
+      _languageCode = savedLanguage;
+    }
+  }
 
   String get _userId =>
       SharedPrefrencesHelper.getString(key: SharedPrefrencesHelper.userIdKey) ??
@@ -69,10 +76,13 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
 
   Future<void> initialize({
     String? defaultSurahId,
-    String languageCode = 'en',
+    String? languageCode,
   }) async {
     if (_isInitialized) return;
-    _languageCode = languageCode;
+    final savedLanguage = SharedPrefrencesHelper.getString(
+      key: SharedPrefrencesHelper.languageCodeKey,
+    );
+    _languageCode = languageCode ?? savedLanguage ?? _languageCode;
     if (defaultSurahId != null) {
       _surahId = defaultSurahId;
     }
@@ -149,8 +159,7 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
       final surahInfo = surahData['surah'] as Map<String, dynamic>?;
       _verses = List<Map<String, dynamic>>.from(surahData['verses'] ?? []);
       if (surahInfo != null) {
-        final lang = _languageCode;
-        final fallbackLang = lang == 'en' ? 'ar' : 'en';
+        final fallbackLang = _determineFallbackLanguage(surahInfo);
         _availableLanguages = _extractLanguageKeys(surahInfo['names']);
         if (_availableLanguages.isNotEmpty &&
             !_availableLanguages.contains(_languageCode)) {
@@ -238,10 +247,46 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
     return [];
   }
 
+  String localizedSurahName(Map<String, dynamic> surah) {
+    final names = surah['names'];
+    final availableLangs = _extractLanguageKeys(names);
+    final fallback = _pickFallback(availableLangs);
+    return _resolveLocaleValue(
+      names,
+      _languageCode,
+      fallback,
+      defaultValue: S.current.surahSelectionDefaultName,
+    );
+  }
+
   String verseTranslation(Map<String, dynamic> verse) {
     final translations = verse['translations'];
-    final fallback = _languageCode == 'en' ? 'ar' : 'en';
+    final availableLangs = _extractLanguageKeys(translations);
+    final fallback = _pickFallback(availableLangs);
     return _resolveLocaleValue(translations, _languageCode, fallback);
+  }
+
+  String _determineFallbackLanguage(Map<String, dynamic> surahInfo) {
+    final names = surahInfo['names'];
+    if (names is Map) {
+      final available = names.keys.toList();
+      return _pickFallback(available.map((e) => e.toString()).toList());
+    }
+    return 'en';
+  }
+
+  String _pickFallback(List<String> availableLanguages) {
+    if (availableLanguages.isEmpty) return 'en';
+    if (!availableLanguages.contains(_languageCode)) {
+      return availableLanguages.first;
+    }
+    final candidates = availableLanguages
+        .where((lang) => lang != _languageCode)
+        .toList();
+    if (candidates.isEmpty) return availableLanguages.first;
+    if (candidates.contains('en')) return 'en';
+    if (candidates.contains('ar')) return 'ar';
+    return candidates.first;
   }
 
   String _resolveLocaleValue(

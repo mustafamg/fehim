@@ -404,7 +404,6 @@ class FirestoreService {
     if (trace.duration != null) {
       buffer.write(' ${trace.duration!.inMilliseconds}ms');
     }
-    print(buffer.toString());
   }
 }
 
@@ -433,6 +432,17 @@ class _SampleSurah {
         'juzNumber': 30,
         'surahNumber': 113,
         'names': {'en': 'Al-Falaq', 'ar': 'سورة الفلق'},
+        'placeOfRevelation': {'en': 'Mecca (Meccan)', 'ar': 'مكة (مكية)'},
+        'position': {
+          'en': "20th from the end of the Qur'an",
+          'ar': 'العشرون من نهاية القرآن',
+        },
+        'otherNames': {'en': "Al-Mu'awwidhatayn", 'ar': 'المعوِّذتان'},
+        'briefContext': {
+          'en':
+              'This surah teaches believers to seek refuge in Allah from all forms of evil.',
+          'ar': 'تعلم هذه السورة المؤمنين الاستعاذة بالله من جميع أنواع الشر.',
+        },
       },
       verses: [
         {
@@ -483,25 +493,25 @@ class _SampleSurah {
               'arabic': 'مِن',
               'translation': {'en': 'From'},
               'audioUrl':
-                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6227.mp3',
+                  'https://firebasestorage.googleapis.com/v0/b/fehim-66711.firebasestorage.app/o/falak%2Fmn.wav?alt=media&token=82cb00fb-9f62-4fba-ad7b-00b94ad67511',
             },
             {
               'arabic': 'شَرِّ',
               'translation': {'en': 'the evil'},
               'audioUrl':
-                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6227.mp3',
+                  'https://firebasestorage.googleapis.com/v0/b/fehim-66711.firebasestorage.app/o/falak%2Fshar.wav?alt=media&token=baf45b73-9cce-46a8-8e1c-47bff337c5df',
             },
             {
               'arabic': 'مَا',
               'translation': {'en': 'of what'},
               'audioUrl':
-                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6227.mp3',
+                  'https://firebasestorage.googleapis.com/v0/b/fehim-66711.firebasestorage.app/o/falak%2Fma.wav?alt=media&token=b1574c2c-4de2-4bd6-bd34-3425222b3433',
             },
             {
               'arabic': 'خَلَقَ',
               'translation': {'en': 'He created'},
               'audioUrl':
-                  'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6227.mp3',
+                  'https://firebasestorage.googleapis.com/v0/b/fehim-66711.firebasestorage.app/o/falak%2Fkhalak.wav?alt=media&token=ccfae960-e908-49d6-b35d-cbc2e87a4d0f',
             },
           ],
         },

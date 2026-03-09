@@ -1,0 +1,145 @@
+{
+  "submit": "جمع کریں",
+  "audioNotCachedMessage": "آڈیو کو آف لائن کیش کرنے کے لیے دستیاب نہیں: {audioUrl}",
+  "@audioNotCachedMessage": {
+    "placeholders": {
+      "audioUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "audioNotAvailableMessage": "آڈیو آف لائن دستیاب نہیں: {audioUrl}",
+  "@audioNotAvailableMessage": {
+    "placeholders": {
+      "audioUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "splashTagline": "قرآن کو آسان اور دلچسپ طریقے سے سیکھیں",
+  "profileDefaultName": "صارف",
+  "profileLogoutDialogTitle": "لاگ آؤٹ کریں؟",
+  "profileLogoutDialogMessage": "کیا آپ واقعی لاگ آؤٹ کرنا چاہتے ہیں؟",
+  "commonCancel": "منسوخ",
+  "commonLogout": "لاگ آؤٹ",
+  "commonNext": "اگلا",
+  "commonContinue": "جاری رکھیں",
+  "commonErrorWithMessage": "خرابی: {message}",
+  "@commonErrorWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "loginGreeting": "دوبارہ خوش آمدید!",
+  "loginGoogleButton": "گوگل کے ذریعے لاگ ان کریں",
+  "loginFailedAuth": "گوگل سے تصدیق ناکام ہوگئی۔",
+  "loginGenericError": "گوگل میں سائن ان کرتے وقت خرابی: {error}",
+  "@loginGenericError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "loginUnsupportedDeviceMessage": "یہ ڈیوائس سائن ان کے لیے درکار گوگل سروسز کو سپورٹ نہیں کرتی۔",
+  "surahSelectionDefaultName": "سورہ",
+  "surahSelectionLoadingMessage": "قرآن کے اعداد و شمار لوڈ ہو رہے ہیں...",
+  "surahSelectionRetryButton": "دوبارہ کوشش کریں",
+  "surahSelectionSelectSurahHint": "سورہ منتخب کریں",
+  "surahSelectionLanguageHint": "زبان",
+  "surahSelectionSummary": "جز {juzNumber} - سورہ نمبر {surahNumber} - آیات {totalVerses}",
+  "@surahSelectionSummary": {
+    "placeholders": {
+      "juzNumber": {
+        "type": "int"
+      },
+      "surahNumber": {
+        "type": "int"
+      },
+      "totalVerses": {
+        "type": "int"
+      }
+    }
+  },
+  "surahSelectionPlaceTitle": "نزول کی جگہ",
+  "surahSelectionPlaceFallback": "مکہ (مکی)",
+  "surahSelectionPositionTitle": "مقام",
+  "surahSelectionPositionFallback": "قرآن کے آخر سے 20واں",
+  "surahSelectionOtherNameTitle": "دوسرا نام",
+  "surahSelectionOtherNameFallback": "المعوذتان",
+  "surahSelectionBriefContextTitle": "مختصر پس منظر",
+  "surahSelectionBriefContextFallback": "مختصر پس منظر",
+  "surahSelectionLessInfo": "کم معلومات",
+  "surahSelectionMoreInfo": "مزید معلومات",
+  "surahSelectionProgressUpdateFailed": "پیش رفت اپ ڈیٹ نہ ہو سکی: {error}",
+  "@surahSelectionProgressUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "surahSelectionResetFailed": "پیش رفت ری سیٹ نہ ہو سکی: {error}",
+  "@surahSelectionResetFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "surahSelectionLoadFailed": "سورہ کا ڈیٹا لوڈ نہیں ہو سکا: {error}",
+  "@surahSelectionLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "languageEnglish": "انگریزی",
+  "languageArabic": "عربی",
+  "languageFrench": "فرانسیسی",
+  "languageUrdu": "اردو",
+  "languageTurkish": "ترکی",
+  "fillGapsTitle": "خالی جگہیں پُر کریں",
+  "fillGapsSubtitle": "گم شدہ حصوں کو مکمل کریں",
+  "connectMeaningTitle": "معانی ملائیں",
+  "connectMeaningSubtitle": "الفاظ کو ان کے معنی سے جوڑیں",
+  "ayahLearningTitle": "الفاظ دریافت کریں",
+  "ayahLearningSubtitle": "آئیے ہر لفظ کو دیکھیں",
+  "ayahLearningEmptyMessage": "اس آیت کے لیے الفاظ کا ڈیٹا دستیاب نہیں۔",
+  "audioPlaybackError": "آڈیو چلانے میں خرابی: {error}",
+  "@audioPlaybackError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "arrangePuzzleTitle": "پزل ترتیب دیں",
+  "arrangePuzzleSubtitle": "آئیے ٹکڑوں کو اکٹھا کریں",
+  "arrangePuzzleMissingData": "پزل کا ڈیٹا دستیاب نہیں۔ براہ کرم پہلے لرننگ پاتھ مکمل کریں۔",
+  "arrangePuzzleGoBack": "واپس جائیں",
+  "arrangePuzzleFinish": "مکمل کریں",
+  "arrangePuzzleCongratsTitle": "مبارک ہو",
+  "arrangePuzzleEarnedPrefix": "آپ نے حاصل کیا ",
+  "arrangePuzzleEarnedHighlight": "{count, plural, one {+{count} آیت} other {+{count} آیات}}",
+  "@arrangePuzzleEarnedHighlight": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "arrangePuzzleEarnedSuffix": " اپنے دل میں۔",
+  "arrangePuzzleNextVerse": "اگلی آیت",
+  "surahInfoPlaceTitle": "نزول کی جگہ",
+  "surahInfoPositionTitle": "مقام",
+  "surahInfoOtherNameTitle": "دوسرا نام",
+  "surahInfoBriefContextTitle": "مختصر پس منظر",
+  "commonHome": "ہوم",
+  "resetProgressTitle": "پیش رفت ری سیٹ کریں",
+  "resetProgressMessage": "یہ اس سورہ کی موجودہ پیش رفت کو ری سیٹ کر دے گا۔ کیا آپ پُر اعتماد ہیں؟",
+  "resetProgressAction": "ری سیٹ"
+}

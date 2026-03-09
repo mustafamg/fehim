@@ -39,7 +39,6 @@ class AudioCacheService {
       await _dio.download(url, file.path);
       return file.path;
     } catch (e) {
-      print('Audio cache error: $e');
       // Return null if download fails (e.g., offline)
       // This allows the caller to handle offline scenario appropriately
       return null;

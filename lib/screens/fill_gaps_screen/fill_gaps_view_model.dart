@@ -108,6 +108,9 @@ class TextSegment {
 
 @Injectable()
 class FillGapsViewModel extends ChangeNotifier {
+  final String? languageCode;
+  FillGapsViewModel({this.languageCode});
+
   List<TextSegment> arabicSegments = [];
   List<TextSegment> englishSegments = [];
 
@@ -177,7 +180,10 @@ class FillGapsViewModel extends ChangeNotifier {
         arabicSegments.add(TextSegment.text(arWord));
       }
 
-      String enWord = wordsList[i]['translation']?['en'] ?? '';
+      String enWord = _resolveWordTranslation(
+        wordsList[i]['translation'],
+        languageCode ?? 'en',
+      );
       if (enWord.isNotEmpty) {
         if (englishGapIndices.contains(i) && enWord.isNotEmpty) {
           int missingIdx = _getRandomBaseCharIndex(enWord, random);
@@ -190,6 +196,33 @@ class FillGapsViewModel extends ChangeNotifier {
       }
     }
     notifyListeners();
+  }
+
+  String _resolveWordTranslation(dynamic translations, String preferred) {
+    if (translations is Map) {
+      final map = translations.map((key, value) => MapEntry('$key', '$value'));
+      final preferredValue = map[preferred];
+      if (preferredValue is String && preferredValue.trim().isNotEmpty) {
+        return preferredValue.trim();
+      }
+      final englishValue = map['en'];
+      if (englishValue is String && englishValue.trim().isNotEmpty) {
+        return englishValue.trim();
+      }
+      try {
+        final fallback = map.values.firstWhere(
+          (value) => value.trim().isNotEmpty,
+          orElse: () => '',
+        );
+        return fallback.trim();
+      } catch (_) {
+        return '';
+      }
+    }
+    if (translations is String) {
+      return translations.trim();
+    }
+    return '';
   }
 
   void onGapChanged(GapWordModel gap, String value) {

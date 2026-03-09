@@ -1,0 +1,145 @@
+{
+  "submit": "Gönder",
+  "audioNotCachedMessage": "Ses çevrimdışı önbelleğe alma için kullanılamıyor: {audioUrl}",
+  "@audioNotCachedMessage": {
+    "placeholders": {
+      "audioUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "audioNotAvailableMessage": "Ses çevrimdışı kullanılamıyor: {audioUrl}",
+  "@audioNotAvailableMessage": {
+    "placeholders": {
+      "audioUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "splashTagline": "Kur'an'ı kolay ve eğlenceli yoldan öğrenin",
+  "profileDefaultName": "Kullanıcı",
+  "profileLogoutDialogTitle": "Çıkış yapılsın mı?",
+  "profileLogoutDialogMessage": "Çıkış yapmak istediğinizden emin misiniz?",
+  "commonCancel": "İptal",
+  "commonLogout": "Çıkış",
+  "commonNext": "İleri",
+  "commonContinue": "Devam",
+  "commonErrorWithMessage": "Hata: {message}",
+  "@commonErrorWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "loginGreeting": "Tekrar hoş geldiniz!",
+  "loginGoogleButton": "Google ile giriş yap",
+  "loginFailedAuth": "Google ile kimlik doğrulama başarısız oldu.",
+  "loginGenericError": "Google ile giriş sırasında hata: {error}",
+  "@loginGenericError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "loginUnsupportedDeviceMessage": "Bu cihaz giriş için gereken Google hizmetlerini desteklemiyor.",
+  "surahSelectionDefaultName": "Sure",
+  "surahSelectionLoadingMessage": "Kur'an verileri yükleniyor...",
+  "surahSelectionRetryButton": "Tekrar dene",
+  "surahSelectionSelectSurahHint": "Sure seç",
+  "surahSelectionLanguageHint": "Dil",
+  "surahSelectionSummary": "Cüz {juzNumber} - Sure Numarası {surahNumber} - Ayet {totalVerses}",
+  "@surahSelectionSummary": {
+    "placeholders": {
+      "juzNumber": {
+        "type": "int"
+      },
+      "surahNumber": {
+        "type": "int"
+      },
+      "totalVerses": {
+        "type": "int"
+      }
+    }
+  },
+  "surahSelectionPlaceTitle": "Nüzul yeri",
+  "surahSelectionPlaceFallback": "Mekke (Mekkî)",
+  "surahSelectionPositionTitle": "Sıra",
+  "surahSelectionPositionFallback": "Kur'an'ın sonundan 20. sırada",
+  "surahSelectionOtherNameTitle": "Diğer isim",
+  "surahSelectionOtherNameFallback": "El-Mu'awwidhatayn",
+  "surahSelectionBriefContextTitle": "Kısa bağlam",
+  "surahSelectionBriefContextFallback": "Kısa bağlam",
+  "surahSelectionLessInfo": "Daha az bilgi",
+  "surahSelectionMoreInfo": "Daha fazla bilgi",
+  "surahSelectionProgressUpdateFailed": "İlerleme güncellenemedi: {error}",
+  "@surahSelectionProgressUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "surahSelectionResetFailed": "İlerleme sıfırlanamadı: {error}",
+  "@surahSelectionResetFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "surahSelectionLoadFailed": "Sure verileri yüklenemedi: {error}",
+  "@surahSelectionLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "languageEnglish": "İngilizce",
+  "languageArabic": "Arapça",
+  "languageFrench": "Fransızca",
+  "languageUrdu": "Urduca",
+  "languageTurkish": "Türkçe",
+  "fillGapsTitle": "Boşlukları doldur",
+  "fillGapsSubtitle": "Eksik kısımları tamamla",
+  "connectMeaningTitle": "Anlamları eşleştir",
+  "connectMeaningSubtitle": "Kelimeleri anlamlarıyla eşleştir",
+  "ayahLearningTitle": "Kelimeleri keşfet",
+  "ayahLearningSubtitle": "Hadi her kelimeyi inceleyelim",
+  "ayahLearningEmptyMessage": "Bu ayet için kelime verisi yok.",
+  "audioPlaybackError": "Ses oynatma hatası: {error}",
+  "@audioPlaybackError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "arrangePuzzleTitle": "Yapbozu düzenle",
+  "arrangePuzzleSubtitle": "Parçaları birleştirelim",
+  "arrangePuzzleMissingData": "Yapboz verileri eksik. Lütfen önce öğrenme yolunu tamamlayın.",
+  "arrangePuzzleGoBack": "Geri dön",
+  "arrangePuzzleFinish": "Bitir",
+  "arrangePuzzleCongratsTitle": "Tebrikler",
+  "arrangePuzzleEarnedPrefix": "Kazandınız ",
+  "arrangePuzzleEarnedHighlight": "{count, plural, one {+{count} ayet} other {+{count} ayet}}",
+  "@arrangePuzzleEarnedHighlight": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "arrangePuzzleEarnedSuffix": " kalbinizde.",
+  "arrangePuzzleNextVerse": "Sonraki ayet",
+  "surahInfoPlaceTitle": "Nüzul yeri",
+  "surahInfoPositionTitle": "Sıra",
+  "surahInfoOtherNameTitle": "Diğer isim",
+  "surahInfoBriefContextTitle": "Kısa bağlam",
+  "commonHome": "Ana sayfa",
+  "resetProgressTitle": "İlerlemeyi sıfırla",
+  "resetProgressMessage": "Bu işlem bu suredeki mevcut ilerlemenizi sıfırlayacak. Emin misiniz?",
+  "resetProgressAction": "Sıfırla"
+}

@@ -162,7 +162,6 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
           _audioPlayer.setSource(DeviceFileSource(localPath));
         } else {
           // Audio not cached and cannot download (likely offline)
-          print('Audio not available offline for caching: $_audioUrl');
           // Still set the URL for potential online playback later
           _audioPlayer.setSourceUrl(_audioUrl!);
         }
@@ -209,7 +208,6 @@ class ArrangePuzzleViewModel extends ChangeNotifier {
             await _audioPlayer.play(DeviceFileSource(localPath));
           } else {
             // Audio not cached and cannot download (likely offline)
-            print('Audio not available offline: $_audioUrl');
             _isAudioLoading = false;
             notifyListeners();
             return;

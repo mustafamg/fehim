@@ -13,13 +13,18 @@ import '../fill_gaps_screen/fill_gaps_screen.dart';
 import 'connnect_meaning_view_model.dart';
 
 class ConnectMeaningScreen extends StatelessWidget {
-  const ConnectMeaningScreen({super.key, required this.verse});
+  final String? languageCode;
+  const ConnectMeaningScreen({
+    super.key,
+    required this.verse,
+    this.languageCode,
+  });
   final Map<String, dynamic> verse;
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) {
-        final viewModel = ConnnectMeaningViewModel();
+        final viewModel = ConnnectMeaningViewModel(languageCode: languageCode);
         if (verse.containsKey('words') && verse['words'] is List) {
           viewModel.init(List<Map<String, dynamic>>.from(verse['words']));
         }
@@ -27,7 +32,9 @@ class ConnectMeaningScreen extends StatelessWidget {
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: SafeArea(child: _Body(verse: verse)),
+        body: SafeArea(
+          child: _Body(verse: verse, languageCode: languageCode),
+        ),
       ),
     );
   }
@@ -35,7 +42,8 @@ class ConnectMeaningScreen extends StatelessWidget {
 
 class _Body extends StatefulWidget {
   final Map<String, dynamic> verse;
-  const _Body({required this.verse});
+  final String? languageCode;
+  const _Body({required this.verse, this.languageCode});
 
   @override
   State<_Body> createState() => _BodyState();
@@ -135,8 +143,10 @@ class _BodyState extends State<_Body> with SingleTickerProviderStateMixin {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    FillGapsScreen(verse: widget.verse),
+                                builder: (context) => FillGapsScreen(
+                                  verse: widget.verse,
+                                  languageCode: widget.languageCode,
+                                ),
                               ),
                             );
                           }
@@ -218,7 +228,7 @@ class _MatchedPairsList extends StatelessWidget {
     final matchedWords = viewModel.currentPageMatchedWords;
     return ListView.separated(
       itemCount: matchedWords.length,
-      separatorBuilder: (_, __) => SizedBox(height: AppPadding.p4),
+      separatorBuilder: (_, _) => SizedBox(height: AppPadding.p4),
       itemBuilder: (context, index) {
         final englishWord = matchedWords.keys.elementAt(index);
         final matchedArabicWord = matchedWords[englishWord];

@@ -272,8 +272,10 @@ class __BodyState extends State<_Body> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) =>
-                            SurahLearningPathScreen(verse: currentVerseData),
+                        builder: (_) => SurahLearningPathScreen(
+                          verse: currentVerseData,
+                          languageCode: viewModel.languageCode,
+                        ),
                       ),
                     ).then((_) {
                       if (mounted) {
@@ -292,7 +294,10 @@ class __BodyState extends State<_Body> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => SurahLearningPathScreen(verse: verseData),
+                      builder: (_) => SurahLearningPathScreen(
+                        verse: verseData,
+                        languageCode: viewModel.languageCode,
+                      ),
                     ),
                   ).then((_) {
                     if (mounted) {
@@ -345,10 +350,7 @@ class _QuranInformation extends StatelessWidget {
               firstCurve: Curves.easeInOut,
               secondCurve: Curves.easeInOut,
               sizeCurve: Curves.easeInOut,
-              firstChild: Align(
-                alignment: Alignment.centerLeft,
-                child: _MoreInfo(key: const ValueKey('more_info_button')),
-              ),
+              firstChild: _MoreInfo(key: const ValueKey('more_info_button')),
               secondChild: Column(
                 key: const ValueKey('more_info_content'),
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -419,10 +421,9 @@ class _NameOfSurah extends StatelessWidget {
                       (surah) => DropdownMenuItem<String>(
                         value: surah['id'] as String,
                         child: Text(
-                          (surah['names']?['en'] ??
-                                  surah['names']?['ar'] ??
-                                  S.current.surahSelectionDefaultName)
-                              .toString(),
+                          viewModel.localizedSurahName(
+                            Map<String, dynamic>.from(surah),
+                          ),
                         ),
                       ),
                     )
@@ -434,6 +435,7 @@ class _NameOfSurah extends StatelessWidget {
                 },
               ),
             ),
+
             DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: viewModel.availableLanguages.isNotEmpty
@@ -487,7 +489,11 @@ class _NameOfSurah extends StatelessWidget {
         ),
         SizedBox(height: WidgetHeight.h8),
         Text(
-          "Juz' ${viewModel.juzNumber} - Surah Number ${viewModel.surahNumber} - Verses ${viewModel.totalVerses}",
+          S.current.surahSelectionSummary(
+            viewModel.juzNumber,
+            viewModel.surahNumber,
+            viewModel.totalVerses,
+          ),
           style: Theme.of(context).textTheme.titleLarge!.copyWith(
             fontSize: FontSizeManager.s12,
             fontWeight: FontWeight.w500,
@@ -509,28 +515,24 @@ class _SurahInformation extends StatelessWidget {
       spacing: WidgetHeight.h12,
       children: [
         _SurahInfoItem(
-          title: 'Place of Revelation',
+          title: S.current.surahInfoPlaceTitle,
           subTitle: viewModel.placeOfRevelation.isNotEmpty
               ? viewModel.placeOfRevelation
-              : 'Mecca (Meccan)',
+              : '',
         ),
         _SurahInfoItem(
-          title: 'Position',
-          subTitle: viewModel.position.isNotEmpty
-              ? viewModel.position
-              : "20th from the end of the Qur'an",
+          title: S.current.surahInfoPositionTitle,
+          subTitle: viewModel.position.isNotEmpty ? viewModel.position : "",
         ),
         _SurahInfoItem(
-          title: 'Other Name',
-          subTitle: viewModel.otherName.isNotEmpty
-              ? viewModel.otherName
-              : "Al-Mu'awwidhatayn",
+          title: S.current.surahInfoOtherNameTitle,
+          subTitle: viewModel.otherName.isNotEmpty ? viewModel.otherName : "",
         ),
         _SurahInfoItem(
-          title: 'Brief context',
+          title: S.current.surahInfoBriefContextTitle,
           subTitle: viewModel.briefContext.isNotEmpty
               ? viewModel.briefContext
-              : 'Brief Context',
+              : '',
         ),
       ],
     );

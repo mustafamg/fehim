@@ -10,6 +10,9 @@ class WordPair {
 
 @Injectable()
 class ConnnectMeaningViewModel extends ChangeNotifier {
+  final String? languageCode;
+  ConnnectMeaningViewModel({this.languageCode});
+
   final List<WordPair> _allWordPairs = [];
 
   final List<String> _availableDraggableWords = [];
@@ -81,12 +84,12 @@ class ConnnectMeaningViewModel extends ChangeNotifier {
     _failedDragTargetEnglishWord = null;
     _currentPage = 0;
     for (var word in words) {
-      final english = word['translation']?['en'] as String?;
+      final english = _resolveWordTranslation(
+        word['translation'],
+        languageCode ?? 'en',
+      );
       final arabic = word['arabic'] as String?;
-      if (english != null &&
-          arabic != null &&
-          english.isNotEmpty &&
-          arabic.isNotEmpty) {
+      if (arabic != null && english.isNotEmpty && arabic.isNotEmpty) {
         _allWordPairs.add(WordPair(englishWord: english, arabicWord: arabic));
         _matchedWords[english] = null;
       }
@@ -148,5 +151,32 @@ class ConnnectMeaningViewModel extends ChangeNotifier {
       });
       return false;
     }
+  }
+
+  String _resolveWordTranslation(dynamic translations, String preferred) {
+    if (translations is Map) {
+      final map = translations.map((key, value) => MapEntry('$key', '$value'));
+      final preferredValue = map[preferred];
+      if (preferredValue is String && preferredValue.trim().isNotEmpty) {
+        return preferredValue.trim();
+      }
+      final englishValue = map['en'];
+      if (englishValue is String && englishValue.trim().isNotEmpty) {
+        return englishValue.trim();
+      }
+      try {
+        final fallback = map.values.firstWhere(
+          (value) => value.trim().isNotEmpty,
+          orElse: () => '',
+        );
+        return fallback.trim();
+      } catch (_) {
+        return '';
+      }
+    }
+    if (translations is String) {
+      return translations.trim();
+    }
+    return '';
   }
 }

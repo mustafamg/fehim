@@ -133,7 +133,11 @@
     }
   },
   "arrangePuzzleEarnedSuffix": " in your heart.",
-  "arrangePuzzleNextVerse": "Next Verse",
+  "arrangePuzzleNextVerse": "Next verse",
+  "surahInfoPlaceTitle": "Place of Revelation",
+  "surahInfoPositionTitle": "Position",
+  "surahInfoOtherNameTitle": "Other Name",
+  "surahInfoBriefContextTitle": "Brief context",
   "commonHome": "Home",
   "resetProgressTitle": "Reset Progress",
   "resetProgressMessage": "This will reset your current progress for this surah. Are you sure?",

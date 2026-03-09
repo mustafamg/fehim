@@ -12,19 +12,22 @@ import 'fill_gaps_view_model.dart';
 
 class FillGapsScreen extends StatelessWidget {
   final Map<String, dynamic> verse;
-  const FillGapsScreen({super.key, required this.verse});
+  final String? languageCode;
+  const FillGapsScreen({super.key, required this.verse, this.languageCode});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) {
-        final viewModel = FillGapsViewModel();
+        final viewModel = FillGapsViewModel(languageCode: languageCode);
         viewModel.init(verse);
         return viewModel;
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: SafeArea(child: _Body(verse: verse)),
+        body: SafeArea(
+          child: _Body(verse: verse, languageCode: languageCode),
+        ),
       ),
     );
   }
@@ -32,7 +35,8 @@ class FillGapsScreen extends StatelessWidget {
 
 class _Body extends StatefulWidget {
   final Map<String, dynamic> verse;
-  const _Body({required this.verse});
+  final String? languageCode;
+  const _Body({required this.verse, this.languageCode});
 
   @override
   State<_Body> createState() => __BodyState();
@@ -90,8 +94,10 @@ class __BodyState extends State<_Body> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                ArrangePuzzleScreen(verse: widget.verse),
+                            builder: (context) => ArrangePuzzleScreen(
+                              verse: widget.verse,
+                              languageCode: widget.languageCode,
+                            ),
                           ),
                         );
                       }

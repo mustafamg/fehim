@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:holy_quran/generated/l10n.dart';
+import 'package:holy_quran/routes/routes_manager.dart';
+import 'package:holy_quran/utils/helper/shared_pref.dart';
 import 'package:provider/provider.dart';
 
 import '../../values/color_manager.dart';
@@ -12,7 +14,12 @@ final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 class SurahLearningPathScreen extends StatelessWidget {
   final Map<String, dynamic> verse;
-  const SurahLearningPathScreen({super.key, required this.verse});
+  final String? languageCode;
+  const SurahLearningPathScreen({
+    super.key,
+    required this.verse,
+    this.languageCode,
+  });
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -20,11 +27,17 @@ class SurahLearningPathScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                RoutesManager.homeRoute,
+                (route) => false,
+              );
+            },
             icon: const Icon(Icons.arrow_back, color: Colors.black),
           ),
         ),
-        body: _Body(verse: verse),
+        body: _Body(verse: verse, languageCode: languageCode),
       ),
     );
   }
@@ -32,7 +45,8 @@ class SurahLearningPathScreen extends StatelessWidget {
 
 class _Body extends StatefulWidget {
   final Map<String, dynamic> verse;
-  const _Body({required this.verse});
+  final String? languageCode;
+  const _Body({required this.verse, this.languageCode});
   @override
   State<_Body> createState() => _BodyState();
 }
@@ -42,13 +56,21 @@ class _BodyState extends State<_Body> with RouteAware {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final languageCode =
+          widget.languageCode ??
+          SharedPrefrencesHelper.getString(
+            key: SharedPrefrencesHelper.languageCodeKey,
+          ) ??
+          Localizations.localeOf(context).languageCode;
+      final translationText = _resolveTranslation(
+        widget.verse['translations'] as Map<String, dynamic>?,
+        languageCode,
+      );
       context.read<SurahLearningPathViewModel>().loadVerseData(
         arabicText: widget.verse['arabic'] as String,
-        translationText:
-            (widget.verse['translations'] as Map<String, dynamic>)['en']
-                as String? ??
-            '',
+        translationText: translationText,
         audioUrl: widget.verse['audioUrl'] as String,
+        languageCode: languageCode,
         words:
             (widget.verse['words'] as List<dynamic>?)
                 ?.map((e) => Map<String, dynamic>.from(e))
@@ -56,6 +78,30 @@ class _BodyState extends State<_Body> with RouteAware {
             [],
       );
     });
+  }
+
+  String _resolveTranslation(
+    Map<String, dynamic>? translations,
+    String preferred,
+  ) {
+    if (translations == null) return '';
+    final preferredValue = translations[preferred];
+    if (preferredValue is String && preferredValue.trim().isNotEmpty) {
+      return preferredValue.trim();
+    }
+    final englishValue = translations['en'];
+    if (englishValue is String && englishValue.trim().isNotEmpty) {
+      return englishValue.trim();
+    }
+    try {
+      final fallback = translations.values.firstWhere(
+        (value) => value is String && value.trim().isNotEmpty,
+        orElse: () => '',
+      );
+      return fallback is String ? fallback.trim() : '';
+    } catch (_) {
+      return '';
+    }
   }
 
   @override
@@ -155,7 +201,7 @@ class _VerseTextSection extends StatelessWidget {
           alignment: WrapAlignment.center,
           spacing: AppSize.s4,
           runSpacing: AppSize.s4,
-          children: List.generate(viewModel.englishPhrases.length, (index) {
+          children: List.generate(viewModel.translationPhrases.length, (index) {
             final isHighlighted =
                 index == viewModel.currentHighlightedTranslationIndex;
             return Container(
@@ -170,7 +216,7 @@ class _VerseTextSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppSize.s4),
               ),
               child: Text(
-                viewModel.englishPhrases[index],
+                viewModel.translationPhrases[index],
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontSize: FontSizeManager.s18,
                   fontWeight: FontWeight.w400,
@@ -279,11 +325,18 @@ class _AudioControlsSection extends StatelessWidget {
           onTap: viewModel.hasFinishedPlaying
               ? () {
                   viewModel.pauseAudio();
+                  final languageCode =
+                      SharedPrefrencesHelper.getString(
+                        key: SharedPrefrencesHelper.languageCodeKey,
+                      ) ??
+                      Localizations.localeOf(context).languageCode;
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          AyahLearningPathScreen(verse: verse),
+                      builder: (context) => AyahLearningPathScreen(
+                        verse: verse,
+                        languageCode: languageCode,
+                      ),
                     ),
                   );
                 }

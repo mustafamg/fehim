@@ -1,0 +1,145 @@
+{
+  "submit": "Envoyer",
+  "audioNotCachedMessage": "Audio non disponible hors ligne pour la mise en cache : {audioUrl}",
+  "@audioNotCachedMessage": {
+    "placeholders": {
+      "audioUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "audioNotAvailableMessage": "Audio non disponible hors ligne : {audioUrl}",
+  "@audioNotAvailableMessage": {
+    "placeholders": {
+      "audioUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "splashTagline": "Apprenez le Coran de manière simple et ludique",
+  "profileDefaultName": "Utilisateur",
+  "profileLogoutDialogTitle": "Se déconnecter ?",
+  "profileLogoutDialogMessage": "Voulez-vous vraiment vous déconnecter ?",
+  "commonCancel": "Annuler",
+  "commonLogout": "Déconnexion",
+  "commonNext": "Suivant",
+  "commonContinue": "Continuer",
+  "commonErrorWithMessage": "Erreur : {message}",
+  "@commonErrorWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "loginGreeting": "Content de vous revoir !",
+  "loginGoogleButton": "Se connecter avec Google",
+  "loginFailedAuth": "Échec de l'authentification Google.",
+  "loginGenericError": "Erreur lors de la connexion Google : {error}",
+  "@loginGenericError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "loginUnsupportedDeviceMessage": "Cet appareil ne prend pas en charge les services Google requis pour la connexion.",
+  "surahSelectionDefaultName": "Sourate",
+  "surahSelectionLoadingMessage": "Chargement des données du Coran...",
+  "surahSelectionRetryButton": "Réessayer",
+  "surahSelectionSelectSurahHint": "Choisir une sourate",
+  "surahSelectionLanguageHint": "Langue",
+  "surahSelectionSummary": "Juz' {juzNumber} - Sourate numéro {surahNumber} - Versets {totalVerses}",
+  "@surahSelectionSummary": {
+    "placeholders": {
+      "juzNumber": {
+        "type": "int"
+      },
+      "surahNumber": {
+        "type": "int"
+      },
+      "totalVerses": {
+        "type": "int"
+      }
+    }
+  },
+  "surahSelectionPlaceTitle": "Lieu de révélation",
+  "surahSelectionPlaceFallback": "La Mecque (mekkoise)",
+  "surahSelectionPositionTitle": "Position",
+  "surahSelectionPositionFallback": "20ᵉ à partir de la fin du Coran",
+  "surahSelectionOtherNameTitle": "Autre nom",
+  "surahSelectionOtherNameFallback": "Al-Mu'awwidhatayn",
+  "surahSelectionBriefContextTitle": "Contexte bref",
+  "surahSelectionBriefContextFallback": "Contexte bref",
+  "surahSelectionLessInfo": "Moins d'informations",
+  "surahSelectionMoreInfo": "Plus d'informations",
+  "surahSelectionProgressUpdateFailed": "Échec de la mise à jour de la progression : {error}",
+  "@surahSelectionProgressUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "surahSelectionResetFailed": "Échec de la réinitialisation de la progression : {error}",
+  "@surahSelectionResetFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "surahSelectionLoadFailed": "Échec du chargement des données de la sourate : {error}",
+  "@surahSelectionLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "languageEnglish": "Anglais",
+  "languageArabic": "Arabe",
+  "languageFrench": "Français",
+  "languageUrdu": "Ourdou",
+  "languageTurkish": "Turc",
+  "fillGapsTitle": "Compléter les lacunes",
+  "fillGapsSubtitle": "Remplissez les parties manquantes",
+  "connectMeaningTitle": "Relier les significations",
+  "connectMeaningSubtitle": "Associez les mots à leurs sens",
+  "ayahLearningTitle": "Découvrir les mots",
+  "ayahLearningSubtitle": "Explorons chaque mot",
+  "ayahLearningEmptyMessage": "Aucune donnée de mots disponible pour ce verset.",
+  "audioPlaybackError": "Erreur de lecture audio : {error}",
+  "@audioPlaybackError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "arrangePuzzleTitle": "Assembler le puzzle",
+  "arrangePuzzleSubtitle": "Assemblons les pièces",
+  "arrangePuzzleMissingData": "Données du puzzle manquantes. Veuillez terminer le parcours d'apprentissage d'abord.",
+  "arrangePuzzleGoBack": "Retour",
+  "arrangePuzzleFinish": "Terminer",
+  "arrangePuzzleCongratsTitle": "Félicitations",
+  "arrangePuzzleEarnedPrefix": "Vous avez gagné ",
+  "arrangePuzzleEarnedHighlight": "{count, plural, one {+{count} verset} other {+{count} versets}}",
+  "@arrangePuzzleEarnedHighlight": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "arrangePuzzleEarnedSuffix": " dans votre cœur.",
+  "arrangePuzzleNextVerse": "Verset suivant",
+  "surahInfoPlaceTitle": "Lieu de révélation",
+  "surahInfoPositionTitle": "Position",
+  "surahInfoOtherNameTitle": "Autre nom",
+  "surahInfoBriefContextTitle": "Contexte bref",
+  "commonHome": "Accueil",
+  "resetProgressTitle": "Réinitialiser la progression",
+  "resetProgressMessage": "Cela réinitialisera votre progression actuelle pour cette sourate. Êtes-vous sûr ?",
+  "resetProgressAction": "Réinitialiser"
+}

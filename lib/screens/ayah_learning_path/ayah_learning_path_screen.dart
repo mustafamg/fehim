@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:holy_quran/generated/l10n.dart';
 import 'package:holy_quran/screens/components/custom_app_bar.dart';
+import 'package:holy_quran/utils/helper/shared_pref.dart';
 import 'package:provider/provider.dart';
+import 'package:vector_math/vector_math_64.dart' as vector;
 
 import '../../main.dart';
 import '../../services/audio_cache_service.dart';
@@ -12,7 +15,12 @@ import 'ayah_learning_path_view_model.dart';
 
 class AyahLearningPathScreen extends StatelessWidget {
   final Map<String, dynamic> verse;
-  const AyahLearningPathScreen({super.key, required this.verse});
+  final String? languageCode;
+  const AyahLearningPathScreen({
+    super.key,
+    required this.verse,
+    this.languageCode,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,15 +29,55 @@ class AyahLearningPathScreen extends StatelessWidget {
           AyahLearningPathViewModel(verse, getIt<AudioCacheService>()),
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: SafeArea(child: _Body(verse: verse)),
+        body: SafeArea(
+          child: _Body(verse: verse, languageCode: languageCode),
+        ),
       ),
     );
   }
 }
 
+extension _LanguageResolution on _BodyState {
+  String _resolveLanguageCode(BuildContext context) {
+    return widget.languageCode ??
+        SharedPrefrencesHelper.getString(
+          key: SharedPrefrencesHelper.languageCodeKey,
+        ) ??
+        Localizations.localeOf(context).languageCode;
+  }
+}
+
+String _resolveWordTranslation(dynamic translations, String preferred) {
+  if (translations is Map) {
+    final map = translations.map((key, value) => MapEntry('$key', '$value'));
+    final preferredValue = map[preferred];
+    if (preferredValue is String && preferredValue.trim().isNotEmpty) {
+      return preferredValue.trim();
+    }
+    final englishValue = map['en'];
+    if (englishValue is String && englishValue.trim().isNotEmpty) {
+      return englishValue.trim();
+    }
+    try {
+      final fallback = map.values.firstWhere(
+        (value) => value.trim().isNotEmpty,
+        orElse: () => '',
+      );
+      return fallback.trim();
+    } catch (_) {
+      return '';
+    }
+  }
+  if (translations is String) {
+    return translations.trim();
+  }
+  return '';
+}
+
 class _Body extends StatefulWidget {
   final Map<String, dynamic> verse;
-  const _Body({required this.verse});
+  final String? languageCode;
+  const _Body({required this.verse, this.languageCode});
 
   @override
   State<_Body> createState() => _BodyState();
@@ -37,17 +85,6 @@ class _Body extends StatefulWidget {
 
 class _BodyState extends State<_Body> {
   late PageController _pageController;
-
-  Future<bool> _onWillPop(AyahLearningPathViewModel viewModel) async {
-    if (viewModel.currentIndex > 0) {
-      await _pageController.previousPage(
-        duration: Duration(milliseconds: AppDuration.d300),
-        curve: Curves.easeInOut,
-      );
-      return false;
-    }
-    return true;
-  }
 
   void _handleBackPress(
     BuildContext context,
@@ -59,7 +96,7 @@ class _BodyState extends State<_Body> {
         curve: Curves.easeInOut,
       );
     } else {
-      Navigator.of(context).pop();
+      Get.back();
     }
   }
 
@@ -90,8 +127,16 @@ class _BodyState extends State<_Body> {
           return Center(child: Text(S.current.ayahLearningEmptyMessage));
         }
 
-        return WillPopScope(
-          onWillPop: () => _onWillPop(viewModel),
+        final canPop = viewModel.currentIndex == 0;
+        final languageCode = _resolveLanguageCode(context);
+
+        return PopScope(
+          canPop: canPop,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop && viewModel.currentIndex > 0) {
+              _handleBackPress(context, viewModel);
+            }
+          },
           child: Column(
             children: [
               CustomAppBar(
@@ -109,6 +154,7 @@ class _BodyState extends State<_Body> {
                 child: _WordCarousel(
                   controller: _pageController,
                   viewModel: viewModel,
+                  languageCode: languageCode,
                 ),
               ),
               Padding(
@@ -116,8 +162,9 @@ class _BodyState extends State<_Body> {
                 child: _AyahNextButton(
                   enabled: viewModel.isWordFinished(viewModel.currentIndex),
                   onPressed: () {
-                    if (!viewModel.isWordFinished(viewModel.currentIndex))
+                    if (!viewModel.isWordFinished(viewModel.currentIndex)) {
                       return;
+                    }
                     if (viewModel.currentIndex < viewModel.words.length - 1) {
                       _pageController.nextPage(
                         duration: Duration(milliseconds: AppDuration.d300),
@@ -127,8 +174,10 @@ class _BodyState extends State<_Body> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              ConnectMeaningScreen(verse: widget.verse),
+                          builder: (context) => ConnectMeaningScreen(
+                            verse: widget.verse,
+                            languageCode: languageCode,
+                          ),
                         ),
                       );
                     }
@@ -210,7 +259,12 @@ class _WordProgressDots extends StatelessWidget {
 class _WordCarousel extends StatelessWidget {
   final PageController controller;
   final AyahLearningPathViewModel viewModel;
-  const _WordCarousel({required this.controller, required this.viewModel});
+  final String languageCode;
+  const _WordCarousel({
+    required this.controller,
+    required this.viewModel,
+    required this.languageCode,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -251,9 +305,17 @@ class _WordCarousel extends StatelessWidget {
             return Center(
               child: Transform(
                 transform: Matrix4.identity()
-                  ..translate(AppSize.s0, translateY, AppSize.s0)
+                  ..translateByVector3(
+                    vector.Vector3(
+                      AppSize.s0.toDouble(),
+                      translateY.toDouble(),
+                      AppSize.s0.toDouble(),
+                    ),
+                  )
                   ..rotateZ(rotationZ)
-                  ..scale(scale),
+                  ..scaleByVector3(
+                    vector.Vector3(scale.toDouble(), scale.toDouble(), 1),
+                  ),
                 alignment: Alignment.center,
                 child: Opacity(
                   opacity: opacity,
@@ -272,6 +334,10 @@ class _WordCarousel extends StatelessWidget {
             isPlaying: isPlaying,
             isCurrent: isCurrent,
             viewModel: viewModel,
+            translationText: _resolveWordTranslation(
+              word['translation'],
+              languageCode,
+            ),
           ),
         );
       },
@@ -285,6 +351,7 @@ class _WordCard extends StatelessWidget {
   final bool isPlaying;
   final bool isCurrent;
   final AyahLearningPathViewModel viewModel;
+  final String translationText;
 
   const _WordCard({
     required this.word,
@@ -292,6 +359,7 @@ class _WordCard extends StatelessWidget {
     required this.isPlaying,
     required this.isCurrent,
     required this.viewModel,
+    required this.translationText,
   });
 
   @override
@@ -383,7 +451,7 @@ class _WordCard extends StatelessWidget {
             flex: AppCount.c2,
             child: Center(
               child: Text(
-                word['translation']?['en'] ?? '',
+                translationText,
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(color: Colors.black87),

@@ -51,7 +51,6 @@ class __BodyState extends State<_Body> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(viewModel.errorMessage!)));
-      print(viewModel.errorMessage);
     }
   }
 

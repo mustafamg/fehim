@@ -1,6 +1,7 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -585,11 +586,51 @@ class S {
     );
   }
 
-  /// `Next Verse`
+  /// `Next verse`
   String get arrangePuzzleNextVerse {
     return Intl.message(
-      'Next Verse',
+      'Next verse',
       name: 'arrangePuzzleNextVerse',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Place of Revelation`
+  String get surahInfoPlaceTitle {
+    return Intl.message(
+      'Place of Revelation',
+      name: 'surahInfoPlaceTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Position`
+  String get surahInfoPositionTitle {
+    return Intl.message(
+      'Position',
+      name: 'surahInfoPositionTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Other Name`
+  String get surahInfoOtherNameTitle {
+    return Intl.message(
+      'Other Name',
+      name: 'surahInfoOtherNameTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Brief context`
+  String get surahInfoBriefContextTitle {
+    return Intl.message(
+      'Brief context',
+      name: 'surahInfoBriefContextTitle',
       desc: '',
       args: [],
     );
@@ -638,6 +679,9 @@ class AppLocalizationDelegate extends LocalizationsDelegate<S> {
     return const <Locale>[
       Locale.fromSubtags(languageCode: 'en'),
       Locale.fromSubtags(languageCode: 'ar'),
+      Locale.fromSubtags(languageCode: 'fr'),
+      Locale.fromSubtags(languageCode: 'tr'),
+      Locale.fromSubtags(languageCode: 'ur'),
     ];
   }
 

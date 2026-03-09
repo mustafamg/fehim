@@ -1,5 +1,5 @@
 {
-  "submit": "Submit",
+  "submit": "إرسال",
   "surahLearningNextButton": "التالي",
   "audioNotCachedMessage": "الصوت غير متاح دون اتصال للتخزين: {audioUrl}",
   "@audioNotCachedMessage": {
@@ -125,10 +125,22 @@
   "arrangePuzzleFinish": "إنهاء",
   "arrangePuzzleCongratsTitle": "تهانينا",
   "arrangePuzzleEarnedPrefix": "لقد حصدت ",
+  "arrangePuzzleEarnedHighlight": "{count, plural, one {+{count} آية} other {+{count} آيات}}",
+  "@arrangePuzzleEarnedHighlight": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "arrangePuzzleEarnedSuffix": " في قلبك.",
   "arrangePuzzleNextVerse": "الآية التالية",
   "arrangePuzzleVerseSingular": "آية",
   "arrangePuzzleVersePlural": "آيات",
+  "surahInfoPlaceTitle": "مكان النزول",
+  "surahInfoPositionTitle": "الترتيب",
+  "surahInfoOtherNameTitle": "اسم آخر",
+  "surahInfoBriefContextTitle": "سياق مختصر",
   "commonHome": "الرئيسية",
   "resetProgressTitle": "إعادة تعيين التقدم",
   "resetProgressMessage": "سيؤدي هذا إلى إعادة تعيين تقدمك الحالي لهذه السورة. هل أنت متأكد؟",

@@ -98,13 +98,11 @@ class AyahLearningPathViewModel extends ChangeNotifier {
         await _audioPlayer.play(DeviceFileSource(localPath));
       } else {
         // Audio not cached and cannot download (likely offline)
-        print('Audio not available offline: $audioUrl');
         _isAudioLoading = false;
         notifyListeners();
         return;
       }
     } catch (e) {
-      print('Audio playback error: $e');
       // Handle audio loading error
     } finally {
       _isAudioLoading = false;
