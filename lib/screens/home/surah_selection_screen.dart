@@ -337,12 +337,25 @@ class _QuranInformation extends StatelessWidget {
           spacing: WidgetHeight.h12,
           children: [
             _NameOfSurah(viewModel: viewModel),
-            if (viewModel.isShowMore) ...[
-              _SurahInformation(viewModel: viewModel),
-              _LessInfo(),
-            ] else ...[
-              _MoreInfo(),
-            ],
+            AnimatedCrossFade(
+              duration: const Duration(milliseconds: 350),
+              crossFadeState: viewModel.isShowMore
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              firstCurve: Curves.easeInOut,
+              secondCurve: Curves.easeInOut,
+              sizeCurve: Curves.easeInOut,
+              firstChild: Align(
+                alignment: Alignment.centerLeft,
+                child: _MoreInfo(key: const ValueKey('more_info_button')),
+              ),
+              secondChild: Column(
+                key: const ValueKey('more_info_content'),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: WidgetHeight.h12,
+                children: const [_SurahInformationWrapper(), _LessInfo()],
+              ),
+            ),
             _SurahProgressBar(
               progress: viewModel.progressPercentage,
               percentage: viewModel.progressText,
@@ -350,6 +363,18 @@ class _QuranInformation extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _SurahInformationWrapper extends StatelessWidget {
+  const _SurahInformationWrapper();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<SurahSelectionScreenViewModel>(
+      builder: (context, viewModel, _) =>
+          _SurahInformation(viewModel: viewModel),
     );
   }
 }
@@ -635,7 +660,7 @@ class _SurahProgressBar extends StatelessWidget {
 }
 
 class _MoreInfo extends StatelessWidget {
-  const _MoreInfo();
+  const _MoreInfo({super.key});
   @override
   Widget build(BuildContext context) {
     return Consumer<SurahSelectionScreenViewModel>(
