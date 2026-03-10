@@ -259,114 +259,125 @@ class _MatchedRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Stack(
-            children: [
-              CustomPaint(
-                size: Size(double.infinity, AppSize.s50),
-                painter: _PuzzlePiecePainter(
-                  color: matchedArabicWord != null
-                      ? Colors.green
-                      : (isError ? Colors.red : Colors.blueGrey.shade500),
-                  isLeftPiece: true,
+    final isArabic = viewModel.languageCode == 'ar';
+    final textDirection = Directionality.of(context);
+
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Row(
+        children: [
+          Expanded(
+            child: Stack(
+              children: [
+                CustomPaint(
+                  size: Size(double.infinity, AppSize.s50),
+                  painter: _PuzzlePiecePainter(
+                    color: matchedArabicWord != null
+                        ? Colors.green
+                        : (isError ? Colors.red : Colors.blueGrey.shade500),
+                    isLeftPiece: true,
+                  ),
                 ),
-              ),
-              Container(
-                height: AppSize.s50,
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.symmetric(horizontal: AppPadding.p16),
-                child: Text(
-                  englishWord,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(color: Colors.white),
+                Container(
+                  height: AppSize.s50,
+                  alignment: isArabic
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
+                  padding: EdgeInsets.symmetric(horizontal: AppPadding.p16),
+                  child: Text(
+                    englishWord,
+                    textDirection: textDirection,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: Colors.white),
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Transform.translate(
-            offset: Offset(-AppSize.s12, 0),
-            child: DragTarget<String>(
-              builder: (context, candidateData, rejectedData) {
-                return Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CustomPaint(
-                      size: Size(double.infinity, AppSize.s50),
-                      painter: _PuzzlePiecePainter(
-                        color: matchedArabicWord != null
-                            ? Colors.green
-                            : (isError ? Colors.red : Colors.grey.shade100),
-                        isLeftPiece: false,
-                        hasBorder: matchedArabicWord == null,
-                        borderColor: candidateData.isNotEmpty
-                            ? ColorManager.primary
-                            : Colors.transparent,
-                      ),
-                    ),
-                    if (matchedArabicWord != null)
-                      Padding(
-                        padding: EdgeInsets.only(left: AppPadding.p16),
-                        child: Text(
-                          matchedArabicWord!,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontFamily: 'Uthmanic',
-                              ),
-                        ),
-                      )
-                    else if (isError &&
-                        viewModel.failedDragTargetArabicWord != null)
-                      Padding(
-                        padding: EdgeInsets.only(left: AppPadding.p16),
-                        child: Text(
-                          viewModel.failedDragTargetArabicWord!,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontFamily: 'Uthmanic',
-                              ),
-                        ),
-                      ),
-                    if (matchedArabicWord != null)
-                      Positioned(
-                        left: AppSize.s12 - (AppSize.s24 / 2),
-                        child: SvgPicture.asset(
-                          SvgAssets.rubElHizb,
-                          width: AppSize.s24,
-                          height: AppSize.s24,
-                          colorFilter: const ColorFilter.mode(
-                            Colors.white,
-                            BlendMode.srcIn,
-                          ),
-                        ),
-                      )
-                    else if (isError &&
-                        viewModel.failedDragTargetArabicWord != null)
-                      Positioned(
-                        left: AppSize.s12 - (AppSize.s24 / 2),
-                        child: Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          size: AppSize.s20,
-                        ),
-                      ),
-                  ],
-                );
-              },
-              onWillAcceptWithDetails: (_) => matchedArabicWord == null,
-              onAcceptWithDetails: (details) {
-                viewModel.onWordDropped(details.data, englishWord);
-              },
+              ],
             ),
           ),
-        ),
-      ],
+          Expanded(
+            child: Transform.translate(
+              offset: Offset(-AppSize.s12, 0),
+              child: DragTarget<String>(
+                builder: (context, candidateData, rejectedData) {
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CustomPaint(
+                        size: Size(double.infinity, AppSize.s50),
+                        painter: _PuzzlePiecePainter(
+                          color: matchedArabicWord != null
+                              ? Colors.green
+                              : (isError ? Colors.red : Colors.grey.shade100),
+                          isLeftPiece: false,
+                          hasBorder: matchedArabicWord == null,
+                          borderColor: candidateData.isNotEmpty
+                              ? ColorManager.primary
+                              : Colors.transparent,
+                        ),
+                      ),
+                      if (matchedArabicWord != null)
+                        Padding(
+                          padding: EdgeInsets.only(left: AppPadding.p16),
+                          child: Text(
+                            matchedArabicWord!,
+                            textDirection: textDirection,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontFamily: 'Uthmanic',
+                                ),
+                          ),
+                        )
+                      else if (isError &&
+                          viewModel.failedDragTargetArabicWord != null)
+                        Padding(
+                          padding: EdgeInsets.only(left: AppPadding.p16),
+                          child: Text(
+                            viewModel.failedDragTargetArabicWord!,
+                            textDirection: textDirection,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontFamily: 'Uthmanic',
+                                ),
+                          ),
+                        ),
+                      if (matchedArabicWord != null)
+                        Positioned(
+                          left: AppSize.s12 - (AppSize.s24 / 2),
+                          child: SvgPicture.asset(
+                            SvgAssets.rubElHizb,
+                            width: AppSize.s24,
+                            height: AppSize.s24,
+                            colorFilter: const ColorFilter.mode(
+                              Colors.white,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                        )
+                      else if (isError &&
+                          viewModel.failedDragTargetArabicWord != null)
+                        Positioned(
+                          left: AppSize.s12 - (AppSize.s24 / 2),
+                          child: Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: AppSize.s20,
+                          ),
+                        ),
+                    ],
+                  );
+                },
+                onWillAcceptWithDetails: (_) => matchedArabicWord == null,
+                onAcceptWithDetails: (details) {
+                  viewModel.onWordDropped(details.data, englishWord);
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

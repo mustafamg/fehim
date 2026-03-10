@@ -41,8 +41,10 @@ class _ArrangePuzzleScreenState extends State<ArrangePuzzleScreen> {
   void _refreshHomeScreen() {
     Future.delayed(const Duration(milliseconds: AppDuration.d100), () async {
       try {
-        final homeViewModel = getIt<SurahSelectionScreenViewModel>();
-        await homeViewModel.refresh();
+        if (getIt.isRegistered<SurahSelectionScreenViewModel>()) {
+          final homeViewModel = getIt<SurahSelectionScreenViewModel>();
+          await homeViewModel.safeRefresh();
+        }
       } catch (e) {
         // Ignore refresh errors
       }
@@ -167,7 +169,8 @@ class _ArrangePuzzleProgressDots extends StatelessWidget {
 
 class _PuzzleBoard extends StatelessWidget {
   final ArrangePuzzleViewModel viewModel;
-  const _PuzzleBoard({required this.viewModel});
+  final String? languageCode;
+  const _PuzzleBoard({required this.viewModel, this.languageCode});
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +193,10 @@ class _PuzzleBoard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _MatchedSlots(viewModel: viewModel),
+                      _MatchedSlots(
+                        viewModel: viewModel,
+                        languageCode: languageCode,
+                      ),
                       SizedBox(height: AppPadding.p24),
                       _DraggableWordsWrap(viewModel: viewModel),
                     ],
@@ -208,67 +214,73 @@ class _PuzzleBoard extends StatelessWidget {
 
 class _MatchedSlots extends StatelessWidget {
   final ArrangePuzzleViewModel viewModel;
-  const _MatchedSlots({required this.viewModel});
+  final String? languageCode;
+  const _MatchedSlots({required this.viewModel, this.languageCode});
 
   @override
   Widget build(BuildContext context) {
     final slots = viewModel.currentPageMatchedWords;
-    return Center(
-      child: Wrap(
-        spacing: AppPadding.p8,
-        runSpacing: AppPadding.p8,
-        alignment: WrapAlignment.center,
-        children: List.generate(slots.length, (index) {
-          final displayIndex = slots.length - 1 - index;
-          final matchedWord = slots[displayIndex];
-          final isError = viewModel.failedIndex == displayIndex;
-          return DragTarget<String>(
-            builder: (context, candidateData, rejectedData) {
-              return Container(
-                width: WidgetWidth.w60,
-                height: WidgetHeight.h40,
-                padding: EdgeInsets.all(AppSize.s4),
-                decoration: BoxDecoration(
-                  color: matchedWord != null
-                      ? ColorManager.green
-                      : (isError ? ColorManager.red : const Color(0xFFF3F5F5)),
-                  borderRadius: BorderRadius.circular(AppSize.s4),
-                  border: Border.all(
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Center(
+        child: Wrap(
+          spacing: AppPadding.p8,
+          runSpacing: AppPadding.p8,
+          alignment: WrapAlignment.center,
+          children: List.generate(slots.length, (index) {
+            final displayIndex = index;
+            final matchedWord = slots[displayIndex];
+            final isError = viewModel.failedIndex == displayIndex;
+            return DragTarget<String>(
+              builder: (context, candidateData, rejectedData) {
+                return Container(
+                  width: WidgetWidth.w60,
+                  height: WidgetHeight.h40,
+                  padding: EdgeInsets.all(AppSize.s4),
+                  decoration: BoxDecoration(
                     color: matchedWord != null
                         ? ColorManager.green
-                        : (candidateData.isNotEmpty
-                              ? ColorManager.primary
-                              : (isError
-                                    ? ColorManager.red
-                                    : const Color(0xFFD9DBE1))),
-                    width: AppRatio.r0_6,
+                        : (isError
+                              ? ColorManager.red
+                              : const Color(0xFFF3F5F5)),
+                    borderRadius: BorderRadius.circular(AppSize.s4),
+                    border: Border.all(
+                      color: matchedWord != null
+                          ? ColorManager.green
+                          : (candidateData.isNotEmpty
+                                ? ColorManager.primary
+                                : (isError
+                                      ? ColorManager.red
+                                      : const Color(0xFFD9DBE1))),
+                      width: AppRatio.r0_6,
+                    ),
                   ),
-                ),
-                alignment: Alignment.center,
-                child:
-                    matchedWord != null ||
-                        (isError && viewModel.failedWord != null)
-                    ? Text(
-                        matchedWord ?? viewModel.failedWord!,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: matchedWord != null
-                              ? Colors.white
-                              : Colors.white,
-                          fontFamily: 'Uthmanic',
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: AppCount.c1,
-                        overflow: TextOverflow.ellipsis,
-                      )
-                    : null,
-              );
-            },
-            onWillAcceptWithDetails: (_) => matchedWord == null,
-            onAcceptWithDetails: (details) {
-              viewModel.onWordDropped(details.data, displayIndex);
-            },
-          );
-        }),
+                  alignment: Alignment.center,
+                  child:
+                      matchedWord != null ||
+                          (isError && viewModel.failedWord != null)
+                      ? Text(
+                          matchedWord ?? viewModel.failedWord!,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontFamily: 'Uthmanic',
+                              ),
+                          textAlign: TextAlign.center,
+                          maxLines: AppCount.c1,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      : null,
+                );
+              },
+              onWillAcceptWithDetails: (_) => matchedWord == null,
+              onAcceptWithDetails: (details) {
+                viewModel.onWordDropped(details.data, displayIndex);
+              },
+            );
+          }),
+        ),
       ),
     );
   }
@@ -552,7 +564,12 @@ class _BodyState extends State<_Body> with SingleTickerProviderStateMixin {
                 SizedBox(height: AppPadding.p8),
                 _ArrangePuzzleProgressDots(viewModel: viewModel),
                 SizedBox(height: AppPadding.p40),
-                Expanded(child: _PuzzleBoard(viewModel: viewModel)),
+                Expanded(
+                  child: _PuzzleBoard(
+                    viewModel: viewModel,
+                    languageCode: widget.languageCode,
+                  ),
+                ),
                 Padding(
                   padding: EdgeInsets.all(AppPadding.p20),
                   child: Builder(

@@ -269,7 +269,7 @@ class _WordCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PageView.builder(
+    final pageView = PageView.builder(
       controller: controller,
       physics: viewModel.isWordFinished(viewModel.currentIndex)
           ? const BouncingScrollPhysics()
@@ -343,6 +343,12 @@ class _WordCarousel extends StatelessWidget {
         );
       },
     );
+
+    if (languageCode == 'ar') {
+      return Directionality(textDirection: TextDirection.ltr, child: pageView);
+    }
+
+    return pageView;
   }
 }
 

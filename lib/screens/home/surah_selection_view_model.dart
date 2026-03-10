@@ -111,6 +111,12 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
     await _loadSurahData();
   }
 
+  Future<void> safeRefresh() async {
+    if (hasListeners) {
+      await refresh();
+    }
+  }
+
   Future<void> completeVerse() async {
     if (_completedVerses >= _totalVerses) {
       return;
