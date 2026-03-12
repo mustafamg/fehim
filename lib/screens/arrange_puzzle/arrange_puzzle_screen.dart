@@ -629,6 +629,7 @@ class _BodyState extends State<_Body> with SingleTickerProviderStateMixin {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      isDismissible: false,
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(

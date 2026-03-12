@@ -281,7 +281,7 @@ class _MatchedRow extends StatelessWidget {
                 Container(
                   height: AppSize.s50,
                   alignment: isArabic
-                      ? Alignment.centerRight
+                      ? Alignment.centerLeft
                       : Alignment.centerLeft,
                   padding: EdgeInsets.symmetric(horizontal: AppPadding.p16),
                   child: Text(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:injectable/injectable.dart';
 
@@ -20,6 +22,30 @@ class FirestoreService {
   final Map<String, _CacheEntry<Map<String, dynamic>>> _userProgressCache = {};
   final Map<String, _CacheEntry<Map<String, dynamic>>> _userProfileCache = {};
   void Function(FirestoreRequestTrace trace)? onRequest;
+
+  Future<QuerySnapshot<Map<String, dynamic>>> _getCollectionFast(
+    Query<Map<String, dynamic>> query,
+  ) async {
+    try {
+      return await query
+          .get(const GetOptions(source: Source.serverAndCache))
+          .timeout(const Duration(milliseconds: 500));
+    } catch (_) {
+      return await query.get(const GetOptions(source: Source.cache));
+    }
+  }
+
+  Future<DocumentSnapshot<Map<String, dynamic>>> _getDocumentFast(
+    DocumentReference<Map<String, dynamic>> ref,
+  ) async {
+    try {
+      return await ref
+          .get(const GetOptions(source: Source.serverAndCache))
+          .timeout(const Duration(milliseconds: 500));
+    } catch (_) {
+      return await ref.get(const GetOptions(source: Source.cache));
+    }
+  }
 
   bool _hasValidProgressIdentity(String userId, String surahId) {
     return userId.trim().isNotEmpty && surahId.trim().isNotEmpty;
@@ -106,7 +132,7 @@ class FirestoreService {
   Future<void> ensureSampleSurahsSeeded() async {
     for (final sample in _SampleSurah.samples) {
       final surahRef = _db.collection('surahs').doc(sample.id);
-      final snapshot = await surahRef.get();
+      final snapshot = await _getDocumentFast(surahRef);
 
       if (snapshot.exists) {
         continue;
@@ -149,7 +175,7 @@ class FirestoreService {
       source: 'server',
     );
     final stopwatch = Stopwatch()..start();
-    final snapshot = await _db.collection('surahs').get();
+    final snapshot = await _getCollectionFast(_db.collection('surahs'));
     stopwatch.stop();
     trace.duration = stopwatch.elapsed;
     _emitTrace(trace);
@@ -212,12 +238,11 @@ class FirestoreService {
     );
     final stopwatch = Stopwatch()..start();
     final surahRef = _db.collection('surahs').doc(surahId);
-    final surahDoc = await surahRef.get();
+    final surahDoc = await _getDocumentFast(surahRef);
 
-    final versesSnapshot = await surahRef
-        .collection('verses')
-        .orderBy('verseNumber')
-        .get();
+    final versesSnapshot = await _getCollectionFast(
+      surahRef.collection('verses').orderBy('verseNumber'),
+    );
     final verses = versesSnapshot.docs.map((doc) => doc.data()).toList();
 
     stopwatch.stop();
@@ -260,7 +285,7 @@ class FirestoreService {
     );
     final stopwatch = Stopwatch()..start();
     final progressRef = _db.collection('user_progress').doc(cacheKey);
-    final snapshot = await progressRef.get();
+    final snapshot = await _getDocumentFast(progressRef);
     stopwatch.stop();
     trace.duration = stopwatch.elapsed;
     _emitTrace(trace);

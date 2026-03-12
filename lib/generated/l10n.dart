@@ -1,7 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'intl/messages_all.dart';
 
 // **************************************************************************
@@ -19,10 +18,8 @@ class S {
   static S? _current;
 
   static S get current {
-    assert(
-      _current != null,
-      'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.',
-    );
+    assert(_current != null,
+        'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
     return _current!;
   }
 
@@ -44,10 +41,8 @@ class S {
 
   static S of(BuildContext context) {
     final instance = S.maybeOf(context);
-    assert(
-      instance != null,
-      'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?',
-    );
+    assert(instance != null,
+        'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?');
     return instance!;
   }
 
@@ -57,7 +52,12 @@ class S {
 
   /// `Submit`
   String get submit {
-    return Intl.message('Submit', name: 'submit', desc: '', args: []);
+    return Intl.message(
+      'Submit',
+      name: 'submit',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Audio not available offline for caching: {audioUrl}`
@@ -92,7 +92,12 @@ class S {
 
   /// `User`
   String get profileDefaultName {
-    return Intl.message('User', name: 'profileDefaultName', desc: '', args: []);
+    return Intl.message(
+      'User',
+      name: 'profileDefaultName',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Log out?`
@@ -117,22 +122,42 @@ class S {
 
   /// `Cancel`
   String get commonCancel {
-    return Intl.message('Cancel', name: 'commonCancel', desc: '', args: []);
+    return Intl.message(
+      'Cancel',
+      name: 'commonCancel',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Logout`
   String get commonLogout {
-    return Intl.message('Logout', name: 'commonLogout', desc: '', args: []);
+    return Intl.message(
+      'Logout',
+      name: 'commonLogout',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Next`
   String get commonNext {
-    return Intl.message('Next', name: 'commonNext', desc: '', args: []);
+    return Intl.message(
+      'Next',
+      name: 'commonNext',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Continue`
   String get commonContinue {
-    return Intl.message('Continue', name: 'commonContinue', desc: '', args: []);
+    return Intl.message(
+      'Continue',
+      name: 'commonContinue',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Error: {message}`
@@ -247,10 +272,7 @@ class S {
 
   /// `Juz' {juzNumber} - Surah Number {surahNumber} - Verses {totalVerses}`
   String surahSelectionSummary(
-    int juzNumber,
-    int surahNumber,
-    int totalVerses,
-  ) {
+      int juzNumber, int surahNumber, int totalVerses) {
     return Intl.message(
       'Juz\' $juzNumber - Surah Number $surahNumber - Verses $totalVerses',
       name: 'surahSelectionSummary',
@@ -391,27 +413,52 @@ class S {
 
   /// `English`
   String get languageEnglish {
-    return Intl.message('English', name: 'languageEnglish', desc: '', args: []);
+    return Intl.message(
+      'English',
+      name: 'languageEnglish',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Arabic`
   String get languageArabic {
-    return Intl.message('Arabic', name: 'languageArabic', desc: '', args: []);
+    return Intl.message(
+      'Arabic',
+      name: 'languageArabic',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `French`
   String get languageFrench {
-    return Intl.message('French', name: 'languageFrench', desc: '', args: []);
+    return Intl.message(
+      'French',
+      name: 'languageFrench',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Urdu`
   String get languageUrdu {
-    return Intl.message('Urdu', name: 'languageUrdu', desc: '', args: []);
+    return Intl.message(
+      'Urdu',
+      name: 'languageUrdu',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Turkish`
   String get languageTurkish {
-    return Intl.message('Turkish', name: 'languageTurkish', desc: '', args: []);
+    return Intl.message(
+      'Turkish',
+      name: 'languageTurkish',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Fill the Gaps`
@@ -638,7 +685,12 @@ class S {
 
   /// `Home`
   String get commonHome {
-    return Intl.message('Home', name: 'commonHome', desc: '', args: []);
+    return Intl.message(
+      'Home',
+      name: 'commonHome',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Reset Progress`

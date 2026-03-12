@@ -197,34 +197,40 @@ class _VerseTextSection extends StatelessWidget {
           }),
         ),
         SizedBox(height: AppSize.s8),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: AppSize.s4,
-          runSpacing: AppSize.s4,
-          children: List.generate(viewModel.translationPhrases.length, (index) {
-            final isHighlighted =
-                index == viewModel.currentHighlightedTranslationIndex;
-            return Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppPadding.p4,
-                vertical: AppPadding.p2,
-              ),
-              decoration: BoxDecoration(
-                color: isHighlighted
-                    ? ColorManager.secondary
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(AppSize.s4),
-              ),
-              child: Text(
-                viewModel.translationPhrases[index],
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: FontSizeManager.s18,
-                  fontWeight: FontWeight.w400,
-                  color: isHighlighted ? Colors.white : Colors.black87,
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: AppSize.s4,
+            runSpacing: AppSize.s4,
+            children: List.generate(viewModel.translationPhrases.length, (
+              index,
+            ) {
+              final isHighlighted =
+                  index == viewModel.currentHighlightedTranslationIndex;
+              return Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppPadding.p4,
+                  vertical: AppPadding.p2,
                 ),
-              ),
-            );
-          }),
+                decoration: BoxDecoration(
+                  color: isHighlighted
+                      ? ColorManager.secondary
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppSize.s4),
+                ),
+                child: Text(
+                  viewModel.translationPhrases[index],
+                  textDirection: TextDirection.ltr,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontSize: FontSizeManager.s18,
+                    fontWeight: FontWeight.w400,
+                    color: isHighlighted ? Colors.white : Colors.black87,
+                  ),
+                ),
+              );
+            }),
+          ),
         ),
       ],
     );
