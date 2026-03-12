@@ -12,9 +12,9 @@ class IconAssets {
   static const String arabicIcon = "${iconPath}ar.svg";
   static const String englishIcon = "${iconPath}en.svg";
   static const String googleIcon = "${iconPath}google-icon.svg";
-  static const String confettiIcon = "${iconPath}confetti.svg";
   static const String userCircle = "${iconPath}user-circle.svg";
   static const String logOut = "${iconPath}logout.svg";
+  static const String congrats = "${iconPath}party-popper.svg";
 }
 
 class SvgAssets {

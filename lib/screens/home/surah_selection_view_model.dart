@@ -86,8 +86,22 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
     if (defaultSurahId != null) {
       _surahId = defaultSurahId;
     }
-    await _firestoreService.ensureSampleSurahsSeeded();
-    _availableSurahs = await _firestoreService.fetchAllSurahs();
+
+    // Only seed data and fetch from Firestore if user is authenticated
+    if (_userId.isNotEmpty) {
+      try {
+        await _firestoreService.ensureSampleSurahsSeeded();
+        _availableSurahs = await _firestoreService.fetchAllSurahs();
+      } catch (e) {
+        // Handle Firestore errors gracefully when not authenticated
+        print('Firestore unavailable: $e');
+        _availableSurahs = [];
+      }
+    } else {
+      // Use empty list when not authenticated
+      _availableSurahs = [];
+    }
+
     if (_availableSurahs.isNotEmpty &&
         !_availableSurahs.any((surah) => surah['id'] == _surahId)) {
       _surahId = _availableSurahs.first['id'] as String;
@@ -118,7 +132,7 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
   }
 
   Future<void> completeVerse() async {
-    if (_completedVerses >= _totalVerses) {
+    if (_completedVerses >= _totalVerses || _userId.isEmpty) {
       return;
     }
     try {
@@ -142,6 +156,7 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
   }
 
   Future<void> resetProgress() async {
+    if (_userId.isEmpty) return;
     try {
       _setLoading(true);
       await _firestoreService.clearUserProgress(_userId, _surahId);
@@ -160,6 +175,26 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
       if (surahId != null) {
         _surahId = surahId;
       }
+
+      // Only proceed with Firestore operations if user is authenticated
+      if (_userId.isEmpty) {
+        // Set default values when not authenticated
+        _verses = [];
+        _completedVerses = 0;
+        _currentVerse = 1;
+        _surahName = S.current.surahSelectionDefaultName;
+        _arabicName = '';
+        _totalVerses = 0;
+        _juzNumber = 0;
+        _surahNumber = 0;
+        _placeOfRevelation = '';
+        _position = '';
+        _otherName = '';
+        _briefContext = '';
+        notifyListeners();
+        return;
+      }
+
       await _firestoreService.initUserProgress(_userId, _surahId);
       final surahData = await _firestoreService.getSurahData(_surahId);
       final surahInfo = surahData['surah'] as Map<String, dynamic>?;

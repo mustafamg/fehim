@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get_utils/src/extensions/context_extensions.dart';
 import 'package:holy_quran/generated/l10n.dart';
 import 'package:holy_quran/main.dart';
@@ -659,10 +660,13 @@ class _BodyState extends State<_Body> with SingleTickerProviderStateMixin {
                     shape: BoxShape.circle,
                   ),
                   padding: EdgeInsets.all(AppPadding.p8),
-                  child: Image.asset(
-                    ImageAssets.confettiIcon,
-                    width: AppSize.s40,
-                    height: AppSize.s40,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      IconAssets.congrats,
+                      width: AppSize.s40,
+                      height: AppSize.s40,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
               ),
