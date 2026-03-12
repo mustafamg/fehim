@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:holy_quran/generated/l10n.dart';
 import 'package:holy_quran/main.dart';
 import 'package:holy_quran/services/audio_cache_service.dart';
+import 'package:holy_quran/services/connectivity_service.dart';
 import 'package:holy_quran/services/firestore_service.dart';
 import 'package:holy_quran/utils/helper/shared_pref.dart';
 import 'package:injectable/injectable.dart';
@@ -10,6 +11,7 @@ import 'package:injectable/injectable.dart';
 class SurahSelectionScreenViewModel extends ChangeNotifier {
   final FirestoreService _firestoreService;
   final AudioCacheService _audioCacheService = getIt<AudioCacheService>();
+  final ConnectivityService _connectivityService = ConnectivityService();
   SurahSelectionScreenViewModel(this._firestoreService) {
     final savedLanguage = SharedPrefrencesHelper.getString(
       key: SharedPrefrencesHelper.languageCodeKey,
@@ -26,6 +28,7 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
   bool _isShowMore = false;
   bool _isLoading = true;
   bool _isInitialized = false;
+  bool _hasValidData = false;
   bool get isInitialized => _isInitialized;
   String? _error;
   String _surahId = 'al_falaq';
@@ -87,16 +90,13 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
       _surahId = defaultSurahId;
     }
 
+    // Load from cache immediately without loading state
+    await _initializeFromCache();
+
     // Only seed data and fetch from Firestore if user is authenticated
     if (_userId.isNotEmpty) {
-      try {
-        await _firestoreService.ensureSampleSurahsSeeded();
-        _availableSurahs = await _firestoreService.fetchAllSurahs();
-      } catch (e) {
-        // Handle Firestore errors gracefully when not authenticated
-        print('Firestore unavailable: $e');
-        _availableSurahs = [];
-      }
+      // Start background refresh without showing loading
+      _refreshInBackground();
     } else {
       // Use empty list when not authenticated
       _availableSurahs = [];
@@ -106,8 +106,177 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
         !_availableSurahs.any((surah) => surah['id'] == _surahId)) {
       _surahId = _availableSurahs.first['id'] as String;
     }
-    await _loadSurahData();
     _isInitialized = true;
+  }
+
+  Future<void> _initializeFromCache() async {
+    try {
+      // Try to load from cache first
+      _availableSurahs = await _firestoreService
+          .fetchAllSurahs(forceRefresh: false)
+          .timeout(const Duration(milliseconds: 500));
+
+      if (_availableSurahs.isNotEmpty) {
+        await _loadSurahDataFromCache();
+        // Only remove loading if we actually have verses data
+        if (_verses.isNotEmpty && _surahName.isNotEmpty) {
+          _setLoading(false);
+        } else {
+          // Keep loading if verses are empty and we need to fetch them
+          _setDefaultValues();
+        }
+      } else {
+        // Cache is empty (like fresh install), so we need to wait for data
+        _setDefaultValues();
+        // Important: we DON'T set loading to false here. We let _refreshInBackground do it.
+      }
+    } catch (e) {
+      // On error (e.g. timeout), set loading and wait for background refresh
+      _availableSurahs = [];
+      _setDefaultValues();
+      // Important: we DON'T set loading to false here. We let _refreshInBackground do it.
+    }
+  }
+
+  Future<void> _loadSurahDataFromCache() async {
+    try {
+      final surahData = await _firestoreService.getSurahData(
+        _surahId,
+        forceRefresh: false,
+      );
+      final surahInfo = surahData['surah'] as Map<String, dynamic>?;
+      _verses = List<Map<String, dynamic>>.from(surahData['verses'] ?? []);
+
+      if (surahInfo != null) {
+        final fallbackLang = _determineFallbackLanguage(surahInfo);
+        _availableLanguages = _extractLanguageKeys(surahInfo['names']);
+        if (_availableLanguages.isNotEmpty &&
+            !_availableLanguages.contains(_languageCode)) {
+          _languageCode = _availableLanguages.first;
+        }
+        _surahName = _resolveLocaleValue(
+          surahInfo['names'],
+          _languageCode,
+          fallbackLang,
+          defaultValue: S.current.surahSelectionDefaultName,
+        );
+        _arabicName = surahInfo['names']?['ar'] ?? _surahName;
+        _totalVerses = surahInfo['totalVerses'] ?? _verses.length;
+        _juzNumber = surahInfo['juzNumber'] ?? 0;
+        _surahNumber = surahInfo['surahNumber'] ?? 0;
+        _placeOfRevelation = _resolveLocaleValue(
+          surahInfo['placeOfRevelation'],
+          _languageCode,
+          fallbackLang,
+        );
+        _position = _resolveLocaleValue(
+          surahInfo['position'],
+          _languageCode,
+          fallbackLang,
+        );
+        _otherName = _resolveLocaleValue(
+          surahInfo['otherNames'],
+          _languageCode,
+          fallbackLang,
+        );
+        _briefContext = _resolveLocaleValue(
+          surahInfo['briefContext'],
+          _languageCode,
+          fallbackLang,
+        );
+      }
+
+      if (_userId.isNotEmpty) {
+        final progressData = await _firestoreService.getUserProgress(
+          _userId,
+          _surahId,
+          forceRefresh: false,
+        );
+        _completedVerses = progressData['completedVerses'] ?? 0;
+        _currentVerse = progressData['currentVerse'] ?? 1;
+      } else {
+        _completedVerses = 0;
+        _currentVerse = 1;
+      }
+
+      // Prefetch audio for all verses in the background
+      _prefetchAudioForVerses();
+
+      if (_verses.isNotEmpty) {
+        _hasValidData = true;
+        _setLoading(false);
+      }
+    } catch (e) {
+      _hasValidData = false;
+      _setDefaultValues();
+    }
+  }
+
+  void _setDefaultValues() {
+    _verses = [];
+    _completedVerses = 0;
+    _currentVerse = 1;
+    _surahName = S.current.surahSelectionDefaultName;
+    _arabicName = '';
+    _totalVerses = 0;
+    _juzNumber = 0;
+    _surahNumber = 0;
+    _placeOfRevelation = '';
+    _position = '';
+    _otherName = '';
+    _briefContext = '';
+    // Don't call notifyListeners() here to prevent empty UI flash
+    _hasValidData = false;
+  }
+
+  Future<void> _refreshInBackground() async {
+    try {
+      // Check internet connectivity first
+      final hasConnection = await _connectivityService.isConnected();
+      if (!hasConnection) {
+        print('No internet connection - skipping background refresh');
+        if (_isLoading) _setLoading(false);
+        return;
+      }
+
+      await _firestoreService.ensureSampleSurahsSeeded();
+      final freshSurahs = await _firestoreService.fetchAllSurahs(
+        forceRefresh: true,
+      );
+
+      // We need to fetch full surah data before deciding to dismiss loading
+      // Especially if cache was completely empty
+      if (_availableSurahs.isEmpty ||
+          _surahListsDiffer(_availableSurahs, freshSurahs)) {
+        _availableSurahs = freshSurahs;
+        await _loadSurahData(forceRefresh: true);
+      }
+    } catch (e) {
+      // Silently handle background refresh errors
+      print('Background refresh failed: $e');
+    } finally {
+      // Always clear loading state when done, especially important for fresh installs
+      // However, we only clear it here if it's still loading. The inner _loadSurahData
+      // might have already cleared it, or might have set it if there was an issue.
+      if (!_hasValidData && _error == null) {
+        // Keep loading spinner until data arrives or an error occurs
+        return;
+      }
+      if (_isLoading) {
+        _setLoading(false);
+      }
+    }
+  }
+
+  bool _surahListsDiffer(
+    List<Map<String, dynamic>> oldList,
+    List<Map<String, dynamic>> newList,
+  ) {
+    if (oldList.length != newList.length) return true;
+    for (int i = 0; i < oldList.length; i++) {
+      if (oldList[i]['id'] != newList[i]['id']) return true;
+    }
+    return false;
   }
 
   Future<void> selectSurah(String surahId) async {
@@ -168,37 +337,27 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadSurahData({String? surahId}) async {
+  Future<void> _loadSurahData({
+    String? surahId,
+    bool forceRefresh = false,
+  }) async {
     try {
-      _setLoading(true);
       _clearError();
       if (surahId != null) {
         _surahId = surahId;
       }
 
-      // Only proceed with Firestore operations if user is authenticated
-      if (_userId.isEmpty) {
-        // Set default values when not authenticated
-        _verses = [];
-        _completedVerses = 0;
-        _currentVerse = 1;
-        _surahName = S.current.surahSelectionDefaultName;
-        _arabicName = '';
-        _totalVerses = 0;
-        _juzNumber = 0;
-        _surahNumber = 0;
-        _placeOfRevelation = '';
-        _position = '';
-        _otherName = '';
-        _briefContext = '';
-        notifyListeners();
-        return;
+      if (_userId.isNotEmpty) {
+        await _firestoreService.initUserProgress(_userId, _surahId);
       }
 
-      await _firestoreService.initUserProgress(_userId, _surahId);
-      final surahData = await _firestoreService.getSurahData(_surahId);
+      final surahData = await _firestoreService.getSurahData(
+        _surahId,
+        forceRefresh: forceRefresh,
+      );
       final surahInfo = surahData['surah'] as Map<String, dynamic>?;
       _verses = List<Map<String, dynamic>>.from(surahData['verses'] ?? []);
+
       if (surahInfo != null) {
         final fallbackLang = _determineFallbackLanguage(surahInfo);
         _availableLanguages = _extractLanguageKeys(surahInfo['names']);
@@ -237,21 +396,36 @@ class SurahSelectionScreenViewModel extends ChangeNotifier {
           fallbackLang,
         );
       }
-      final progressData = await _firestoreService.getUserProgress(
-        _userId,
-        _surahId,
-      );
-      _completedVerses = progressData['completedVerses'] ?? 0;
-      _currentVerse = progressData['currentVerse'] ?? 1;
+
+      if (_userId.isNotEmpty) {
+        final progressData = await _firestoreService.getUserProgress(
+          _userId,
+          _surahId,
+          forceRefresh: forceRefresh,
+        );
+        _completedVerses = progressData['completedVerses'] ?? 0;
+        _currentVerse = progressData['currentVerse'] ?? 1;
+      } else {
+        _completedVerses = 0;
+        _currentVerse = 1;
+      }
 
       // Prefetch audio for all verses in the background
       _prefetchAudioForVerses();
 
-      notifyListeners();
+      // Only dismiss loading if we have valid data
+      if (_verses.isNotEmpty &&
+          _surahName.isNotEmpty &&
+          _surahName != S.current.surahSelectionDefaultName) {
+        _hasValidData = true;
+        _setLoading(false);
+      }
     } catch (e) {
       _setError(S.current.surahSelectionLoadFailed('$e'));
-    } finally {
-      _setLoading(false);
+      if (_verses.isEmpty) {
+        _setDefaultValues();
+      }
+      _setLoading(false); // In case of hard error, we must dismiss loading
     }
   }
 
